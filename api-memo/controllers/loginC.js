@@ -22,7 +22,13 @@ class logincontroller {
 
   create(data) {
     return new Promise((resolve, reject) => {
-
+      model.create(data)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
     });
   }
 

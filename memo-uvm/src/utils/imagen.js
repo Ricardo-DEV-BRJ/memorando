@@ -67,6 +67,57 @@ export const imagenABase64Optimizado = (fileInput, maxWidth = 800, quality = 0.7
   })
 }
 
+/**
+ * Convierte un archivo de imagen en un string Base64 optimizado manteniendo un formato cuadrado 1:1
+ * mediante recorte central (Cover).
+ * 
+ * @param {File | File[]} fileInput - Archivo de imagen o array de archivos (v-file-input)
+ * @param {number} size - Tamaño (ancho y alto) del cuadrado en píxeles (por defecto 600px)
+ * @param {number} quality - Calidad de compresión entre 0.1 y 1.0 (por defecto 0.75)
+ * @param {string} format - Formato de salida 'image/webp' o 'image/jpeg' (por defecto 'image/webp')
+ * @returns {Promise<string>} Promesa que resuelve con la cadena Base64 Data URL
+ */
+export const imagenABase64Cuadrada = (fileInput, size = 600, quality = 0.75, format = 'image/webp') => {
+  return new Promise((resolve, reject) => {
+    const file = Array.isArray(fileInput) ? fileInput[0] : fileInput
+
+    if (!file || !(file instanceof File)) {
+      return reject(new Error('No se ha proporcionado un archivo válido.'))
+    }
+
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target.result
+
+      img.onload = () => {
+        const targetSize = size
+        // Tomar la dimensión mínima para el recorte central perfecto 1:1
+        const minDim = Math.min(img.width, img.height)
+
+        const sx = Math.round((img.width - minDim) / 2)
+        const sy = Math.round((img.height - minDim) / 2)
+
+        const canvas = document.createElement('canvas')
+        canvas.width = targetSize
+        canvas.height = targetSize
+
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, targetSize, targetSize)
+
+        const base64Data = canvas.toDataURL(format, quality)
+        resolve(base64Data)
+      }
+      img.onerror = (error) => reject(error)
+    }
+    reader.onerror = (error) => reject(error)
+  })
+}
+
+export const imagenABase641a1 = imagenABase64Cuadrada
+export const imagenABase64Cuadrado = imagenABase64Cuadrada
+
 // Mantener retrocompatibilidad con las funciones anteriores
 export const compressAndResizeImage = async (file) => {
   const MAX_WIDTH = 1024

@@ -11,6 +11,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppToast: typeof import('./components/AppToast.vue')['default']
+    ConfirmDialog: typeof import('./components/ConfirmDialog.vue')['default']
+    EquiposForm: typeof import('./components/Forms/EquiposForm.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     ResponsablesForm: typeof import('./components/Forms/ResponsablesForm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

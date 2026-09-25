@@ -1,4 +1,5 @@
 import db from "../database/db.js"
+import bcrypt from "bcrypt"
 
 class loginmodel {
   all() {
@@ -9,7 +10,7 @@ class loginmodel {
 
   getOne(id) {
     return new Promise(async (resolve, reject) => {
-      const sql = "SELECT cedula, pass FROM login WHERE cedula = ?"
+      const sql = "SELECT id, id_responsable, cedula, pass FROM login WHERE cedula = ?"
       try {
         const [rows] = await db.query(sql, [id])
         if (rows.length > 0) {
@@ -25,12 +26,22 @@ class loginmodel {
 
   create(data) {
     return new Promise(async (resolve, reject) => {
-      const sql = "INSERT INTO login (cedula, pass) VALUES (?, ?)"
       try {
-        const [rows] = await db.query(sql, [data.cedula, data.pass])
-        resolve(rows)
+        const passValue = data.pass || data.clave || '';
+        const saltRounds = 10;
+        const hashedPass = await bcrypt.hash(passValue, saltRounds);
+
+        const sql = data.id_responsable
+          ? "INSERT INTO login (id_responsable, cedula, clave) VALUES (?, ?, ?)"
+          : "INSERT INTO login (cedula, pass) VALUES (?, ?)";
+        const params = data.id_responsable
+          ? [data.id_responsable, data.cedula, hashedPass]
+          : [data.cedula, hashedPass];
+
+        const [rows] = await db.query(sql, params);
+        resolve({ status: 201, message: "Acceso creado con éxito", data: rows });
       } catch (error) {
-        reject(error)
+        reject(error);
       }
     });
   }

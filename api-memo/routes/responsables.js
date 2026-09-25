@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const data = await controller.getOne(req.params.id);
-        res.json(data);
+        res.status(data.status).json({ message: data.message, users: data.data });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const data = await controller.update(req.params.id, req.body);
-        res.json(data);
+        res.status(data.status).json({ message: data.message, users: data.data });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -43,7 +43,16 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const data = await controller.delete(req.params.id);
-        res.json(data);
+        res.status(data.status).json({ message: data.message, users: data.data });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.put('/:id/activar', async (req, res) => {
+    try {
+        const data = await controller.activar(req.params.id);
+        res.status(data.status).json({ message: data.message, users: data.data });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

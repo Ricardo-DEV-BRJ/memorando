@@ -23,6 +23,9 @@ declare global {
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const h: typeof import('vue').h
+  const imagenABase641a1: typeof import('./utils/imagen.js').imagenABase641a1
+  const imagenABase64Cuadrada: typeof import('./utils/imagen.js').imagenABase64Cuadrada
+  const imagenABase64Cuadrado: typeof import('./utils/imagen.js').imagenABase64Cuadrado
   const imagenABase64Optimizado: typeof import('./utils/imagen.js').imagenABase64Optimizado
   const inject: typeof import('vue').inject
   const isProxy: typeof import('vue').isProxy
@@ -61,6 +64,7 @@ declare global {
   const toRef: typeof import('vue').toRef
   const toRefs: typeof import('vue').toRefs
   const toValue: typeof import('vue').toValue
+  const toast: typeof import('./composables/useToast.js').toast
   const triggerRef: typeof import('vue').triggerRef
   const unref: typeof import('vue').unref
   const useAttrs: typeof import('vue').useAttrs
@@ -73,6 +77,7 @@ declare global {
   const useRouter: typeof import('vue-router').useRouter
   const useSlots: typeof import('vue').useSlots
   const useTemplateRef: typeof import('vue').useTemplateRef
+  const useToastState: typeof import('./composables/useToast.js').useToastState
   const watch: typeof import('vue').watch
   const watchEffect: typeof import('vue').watchEffect
   const watchPostEffect: typeof import('vue').watchPostEffect
@@ -104,6 +109,9 @@ declare module 'vue' {
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
+    readonly imagenABase641a1: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase641a1']>
+    readonly imagenABase64Cuadrada: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase64Cuadrada']>
+    readonly imagenABase64Cuadrado: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase64Cuadrado']>
     readonly imagenABase64Optimizado: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase64Optimizado']>
     readonly inject: UnwrapRef<typeof import('vue')['inject']>
     readonly isProxy: UnwrapRef<typeof import('vue')['isProxy']>
@@ -142,6 +150,7 @@ declare module 'vue' {
     readonly toRef: UnwrapRef<typeof import('vue')['toRef']>
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
     readonly toValue: UnwrapRef<typeof import('vue')['toValue']>
+    readonly toast: UnwrapRef<typeof import('./composables/useToast.js')['toast']>
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
@@ -154,6 +163,7 @@ declare module 'vue' {
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
+    readonly useToastState: UnwrapRef<typeof import('./composables/useToast.js')['useToastState']>
     readonly watch: UnwrapRef<typeof import('vue')['watch']>
     readonly watchEffect: UnwrapRef<typeof import('vue')['watchEffect']>
     readonly watchPostEffect: UnwrapRef<typeof import('vue')['watchPostEffect']>

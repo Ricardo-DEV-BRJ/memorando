@@ -17,7 +17,13 @@ class responsablesController {
 
   getOne(id) {
     return new Promise((resolve, reject) => {
-
+      model.getOne(id)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
     });
   }
 
@@ -35,13 +41,37 @@ class responsablesController {
 
   update(id, data) {
     return new Promise((resolve, reject) => {
-
+      model.update(id, data)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
     });
   }
 
   delete(id) {
     return new Promise((resolve, reject) => {
+      model.delete(id)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    });
+  }
 
+  activar(id) {
+    return new Promise((resolve, reject) => {
+      model.activar(id)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
     });
   }
 }

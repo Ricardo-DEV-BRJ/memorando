@@ -19,14 +19,26 @@ class responsablesModel {
 
     getOne(id) {
         return new Promise(async (resolve, reject) => {
-            // Consulta por ID
+            const sql = 'SELECT * FROM responsable WHERE id = ?'
+            const valores = [id]
+            try {
+                const [rows] = await db.query(sql, valores)
+                if (rows.length > 0) {
+                    resolve({ status: 200, data: rows, message: 'Consulta con exito' })   
+                } else {
+                    resolve({ status: 200, data: rows, message: 'Sin resultados' })
+                }
+            } catch (error) {
+                reject(error)
+            }
         });
     }
 
     create(data) {
         return new Promise(async (resolve, reject) => {
+            const { nombre, apellido, cedula, firma } = data
             const sql = 'INSERT INTO responsable (nombre, apellido, cedula, firma) VALUES (?,?,?,?)'
-            const valores = Object.values(data)
+            const valores = [nombre, apellido, cedula, firma]
             try {
                 const result = await db.query(sql, valores)
                 resolve({ status: 201, data: [], message: 'Creado con exito' })
@@ -38,13 +50,41 @@ class responsablesModel {
 
     update(id, data) {
         return new Promise(async (resolve, reject) => {
-            // Consulta para actualizar
+            const { nombre, apellido, cedula, firma } = data
+            const sql = 'UPDATE responsable SET nombre = ? , apellido = ? , cedula = ? , firma = ?  WHERE id = ?'
+            const valores = [nombre, apellido, cedula, firma, id]
+            try {
+                const result = await db.query(sql, valores)
+                resolve({ status: 200, data: [], message: 'Actualizado con exito' })
+            } catch (error) {
+                reject(error)
+            }
         });
     }
 
     delete(id) {
         return new Promise(async (resolve, reject) => {
-            // Consulta para eliminar
+            const sql = 'UPDATE responsable SET eliminado = 0 WHERE id = ?'
+            const valores = [id]
+            try {
+                const result = await db.query(sql, valores)
+                resolve({ status: 200, data: [], message: 'Inactivado con exito' })
+            } catch (error) {
+                reject(error)
+            }
+        });
+    }
+
+    activar(id) {
+        return new Promise(async (resolve, reject) => {
+            const sql = 'UPDATE responsable SET eliminado = 1 WHERE id = ?'
+            const valores = [id]
+            try {
+                const result = await db.query(sql, valores)
+                resolve({ status: 200, data: [], message: 'Activado con exito' })
+            } catch (error) {
+                reject(error)
+            }
         });
     }
 }

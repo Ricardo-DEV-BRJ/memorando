@@ -3,7 +3,7 @@ CREATE TABLE ubicacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     direccion TEXT,
-    eliminado BOOLEAN DEFAULT FALSE
+    eliminado BOOLEAN DEFAULT TRUE
 );
 
 -- 2. Tabla: Responsable
@@ -12,8 +12,8 @@ CREATE TABLE responsable (
     nombre VARCHAR(100) NOT NULL,
     apellido VARCHAR(100) NOT NULL,
     cedula VARCHAR(20) NOT NULL,
-    firma VARCHAR(255),
-    eliminado BOOLEAN DEFAULT FALSE
+    firma LONGTEXT,
+    eliminado BOOLEAN DEFAULT TRUE
 );
 
 -- 3. Tabla: Equipo (con campo imagen en Base64)
@@ -24,7 +24,7 @@ CREATE TABLE equipo (
     imagen LONGTEXT,
     descripcion TEXT,
     estado VARCHAR(50),
-    eliminado BOOLEAN DEFAULT FALSE
+    eliminado BOOLEAN DEFAULT TRUE
 );
 
 -- 4. Tabla: Memorando

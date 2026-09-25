@@ -9,6 +9,7 @@ const datos = ref({
   firma: '',
 })
 const validado = ref(null)
+const editando = ref(false)
 async function obtenerFirma(e) {
   if (e) {
     try {
@@ -28,12 +29,25 @@ const firmaBase64 = computed(() => {
 })
 
 
+const emit = defineEmits(['guardado']);
+
 function cerrar() {
   diag.value = false;
 }
 
 function abrir(data = {}) {
-  datos.value = data;
+  if (Object.keys(data).length === 0) {
+    datos.value = {
+      nombre: '',
+      apellido: '',
+      cedula: '',
+      firma: '',
+    };
+    editando.value = false;
+  } else {
+    datos.value = { ...data };
+    editando.value = true;
+  }
   diag.value = true;
 }
 
@@ -43,23 +57,48 @@ function cancelar() {
     apellido: '',
     cedula: '',
     firma: '',
-  }
+  };
   cerrar();
 }
 
 async function agregar() {
-  apiCall('responsables', datos.value, 'POST')
-  .then((res)=>{
-    console.log(res)
-  }).catch((err)=>{
-    console.log(err)
-  })
+  apiCall('responsables/', datos.value, 'POST')
+    .then((res) => {
+      if (res.status === 200 || res.status === 201) {
+        toast.success('Responsable agregado exitosamente');
+        emit('guardado');
+        cancelar();
+      } else {
+        toast.error('Ocurrió un error al agregar');
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      toast.error('Error al conectar con el servidor');
+    });
+}
+
+async function actualizar() {
+  apiCall(`responsables/${datos.value.id}`, datos.value, 'PUT')
+    .then((res) => {
+      if (res.status === 200 || res.status === 201) {
+        toast.success('Responsable actualizado exitosamente');
+        emit('guardado');
+        cancelar();
+      } else {
+        toast.error('Ocurrió un error al actualizar');
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      toast.error('Error al conectar con el servidor');
+    });
 }
 
 defineExpose({
   abrir,
-  cerrar
-})
+  cerrar,
+});
 </script>
 
 <template>
@@ -68,7 +107,7 @@ defineExpose({
       <v-card-title>
         <v-row align="center">
           <v-col cols="8" class="text-h6 font-weight-bold">
-            Agregar
+            {{ editando ? 'Editar' : 'Agregar' }}
           </v-col>
           <v-col cols="4" class="text-right">
             <v-btn color="error" variant="tonal" icon="mdi-close-circle-outline" size="small" @click="cancelar"></v-btn>
@@ -98,6 +137,9 @@ defineExpose({
             </v-col>
             <v-col cols="12" class="py-0">
               <v-file-input label="Firma" density="compact" @update:model-value="obtenerFirma"></v-file-input>
+              <v-card-subtitle v-if="editando">
+                Solo agregaras una foto si deseas actualizar la firma
+              </v-card-subtitle>
             </v-col>
             <transition name="fade">
               <v-col cols="12" class="d-flex justify-center" v-if="datos.firma">
@@ -111,7 +153,8 @@ defineExpose({
       </v-card-text>
       <v-card-actions class="justify-end">
         <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" @click="cancelar">Cancelar</v-btn>
-        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar" :disabled="!validado">Agregar</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar" :disabled="!validado" v-if="!editando">Agregar</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="actualizar" :disabled="!validado" v-else>Actualizar</v-btn>
       </v-card-actions>
     </v-card>
 
