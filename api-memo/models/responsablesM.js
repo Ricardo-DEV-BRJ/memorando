@@ -3,7 +3,17 @@ import db from '../database/db.js';
 class responsablesModel {
     all() {
         return new Promise(async (resolve, reject) => {
-            // Consulta para obtener todos
+            const sql = 'SELECT * FROM responsable'
+            try {
+                const [rows] = await db.query(sql)
+                if (rows.length > 0) {
+                    resolve({ status: 200, data: rows, message: 'Consulta con exito' })   
+                } else {
+                    resolve({ status: 200, data: rows, message: 'Sin resultados' })
+                }
+            } catch (error) {
+                reject(error)
+            }
         });
     }
 
@@ -15,10 +25,11 @@ class responsablesModel {
 
     create(data) {
         return new Promise(async (resolve, reject) => {
-            const sql = 'INSERT INTO responsables (nombre, apellido, cedula, firma) VALUES (?,?,?,?)'
+            const sql = 'INSERT INTO responsable (nombre, apellido, cedula, firma) VALUES (?,?,?,?)'
+            const valores = Object.values(data)
             try {
-                const result = await db.query(sql, [data])
-                resolve({ status: 200, data: result })
+                const result = await db.query(sql, valores)
+                resolve({ status: 201, data: [], message: 'Creado con exito' })
             } catch (error) {
                 reject(error)
             }

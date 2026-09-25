@@ -3,14 +3,21 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-
+import dotenv from "dotenv";
+import cors from 'cors';
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/users.js';
 import equiposRouter from './routes/equipos.js';
 import loginRouter from './routes/login.js'; 
 import responsables from './routes/responsables.js'; 
+dotenv.config();
+
+
 
 const app = express();
+const corsEndpoint = process.env.CORS_PORT
+console.log(corsEndpoint)
+
 const __dirname = import.meta.dirname;
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -21,6 +28,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors({
+  origin: [corsEndpoint],
+  methods: 'GET,POST,PUT,DELETE'
+}))
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);

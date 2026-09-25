@@ -5,7 +5,13 @@ const model = new responsablesModel();
 class responsablesController {
   all() {
     return new Promise((resolve, reject) => {
-
+      model.all()
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
     });
   }
 

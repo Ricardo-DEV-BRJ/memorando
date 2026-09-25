@@ -3,6 +3,8 @@ import Vue from '@vitejs/plugin-vue'
 import Fonts from 'unplugin-fonts/vite'
 import { defineConfig } from 'vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import AutoImport from 'unplugin-auto-import/vite'
+import Components from 'unplugin-vue-components/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -27,6 +29,22 @@ export default defineConfig({
           },
         ],
       },
+    }),
+    AutoImport({
+      imports: [
+        'vue',
+        'vue-router',
+      ],
+      dirs: [
+        'src/utils',
+        'src/composables',
+      ],
+      vueTemplate: true,
+      dts: 'src/auto-imports.d.ts',
+    }),
+    Components({
+      dirs: ['src/components'],
+      dts: 'src/components.d.ts',
     }),
   ],
   define: { 'process.env': {} },
