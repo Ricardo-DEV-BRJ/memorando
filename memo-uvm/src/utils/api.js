@@ -1,4 +1,6 @@
 import axios from 'axios';
+import router from '@/router';
+
 
 export async function apiCall(endpoint, data = {}, method = 'GET') {
     return new Promise((resolve, reject) => {
@@ -6,7 +8,7 @@ export async function apiCall(endpoint, data = {}, method = 'GET') {
         const token = document.cookie.split(';').find(row => row.startsWith('token='));
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': token ? token : null
+            'Authorization': token ? `Bearer ${token.split('token=')[1]}` : null
         };
         const options = {
             method,
@@ -17,7 +19,16 @@ export async function apiCall(endpoint, data = {}, method = 'GET') {
             url,
             ...options
         }).then((res) => {
+            if (res.data?.access === false) {
+                router.push('/login')
+            }
             resolve(res)
-        }).catch((error) => reject(error))
+        }).catch((error) => {
+            console.log(error)
+            if (error.response?.data?.access === false) {
+                router.push('/login')
+            }
+            reject(error)
+        })
     })
 }

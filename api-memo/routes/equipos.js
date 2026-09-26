@@ -1,28 +1,29 @@
 import express from 'express';
 import equiposController from '../controllers/equiposC.js';
+import { verifyToken } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 const controller = new equiposController();
 
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const data = await controller.all();
-    res.status(data.status).json({ message: data.message, users: data.data });
+    res.status(data.status).json({ message: data.message, equ: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.getOne(req.params.id);
-    res.status(data.status).json({ message: data.message, users: data.data });
+    res.status(data.status).json({ message: data.message, equ: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   try {
     const data = await controller.create(req.body);
     res.status(201).json(data);
@@ -31,28 +32,28 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.update(req.params.id, req.body);
-    res.status(data.status).json({ message: data.message, users: data.data });
+    res.status(data.status).json({ message: data.message, equ: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.delete(req.params.id);
-    res.status(data.status).json({ message: data.message, users: data.data });
+    res.status(data.status).json({ message: data.message, equ: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-router.put('/:id/changeStatus', async (req, res) => {
+router.put('/:id/changeStatus', verifyToken, async (req, res) => {
   try {
     const data = await controller.changeStatus(req.params.id, req.body);
-    res.status(data.status).json({ message: data.message, users: data.data });
+    res.status(data.status).json({ message: data.message, equ: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

@@ -12,11 +12,15 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppToast: typeof import('./components/AppToast.vue')['default']
+    BotonTema: typeof import('./components/BotonTema.vue')['default']
     ConfirmDialog: typeof import('./components/ConfirmDialog.vue')['default']
     EquiposForm: typeof import('./components/Forms/EquiposForm.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
+    ModalImagen: typeof import('./components/ModalImagen.vue')['default']
+    NavBar: typeof import('./components/NavBar.vue')['default']
     ResponsablesForm: typeof import('./components/Forms/ResponsablesForm.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Ubicaciones: typeof import('./components/Forms/Ubicaciones.vue')['default']
   }
 }

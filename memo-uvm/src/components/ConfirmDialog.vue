@@ -54,7 +54,7 @@ defineExpose({
         <v-avatar :color="config.colorBoton" variant="tonal" size="40" class="mr-3">
           <v-icon :icon="config.icono" size="24"></v-icon>
         </v-avatar>
-        <span>{{ config.titulo }}</span>
+        <span class="text-wrap">{{ config.titulo }}</span>
       </v-card-title>
 
       <v-card-text class="pt-3 text-body-1 text-medium-emphasis">

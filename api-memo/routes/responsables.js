@@ -1,10 +1,11 @@
 import express from 'express';
 import responsablesController from '../controllers/responsablesC.js';
+import { verifyToken } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 const controller = new responsablesController();
 
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
     try {
         const data = await controller.all();
         res.status(data.status).json({ message: data.message, users: data.data });
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
     try {
         const data = await controller.getOne(req.params.id);
         res.status(data.status).json({ message: data.message, users: data.data });
@@ -22,7 +23,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     try {
         const data = await controller.create(req.body);
         res.status(201).json(data);
@@ -31,7 +32,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
     try {
         const data = await controller.update(req.params.id, req.body);
         res.status(data.status).json({ message: data.message, users: data.data });
@@ -40,7 +41,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const data = await controller.delete(req.params.id);
         res.status(data.status).json({ message: data.message, users: data.data });
@@ -49,7 +50,7 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-router.put('/:id/activar', async (req, res) => {
+router.put('/:id/activar', verifyToken, async (req, res) => {
     try {
         const data = await controller.activar(req.params.id);
         res.status(data.status).json({ message: data.message, users: data.data });

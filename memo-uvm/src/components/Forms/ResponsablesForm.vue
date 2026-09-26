@@ -13,7 +13,7 @@ const editando = ref(false)
 async function obtenerFirma(e) {
   if (e) {
     try {
-      const base64 = await imagenABase64Optimizado(e, 600, 0.76);
+      const base64 = await imagenABase64Optimizado(e, 600, 0.76, 'image/png');
       datos.value.firma = base64;
     } catch (error) {
       console.error('Error al convertir la imagen a Base64:', error);
