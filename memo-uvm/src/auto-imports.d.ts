@@ -19,6 +19,9 @@ declare global {
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
   const effectScope: typeof import('vue').effectScope
+  const final: typeof import('./utils/imagenes.js').final
+  const generarMemo: typeof import('./utils/imprimir.js').generarMemo
+  const generarMemorando: typeof import('./utils/imprimir.js').generarMemorando
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
@@ -33,7 +36,9 @@ declare global {
   const isReadonly: typeof import('vue').isReadonly
   const isRef: typeof import('vue').isRef
   const isShallow: typeof import('vue').isShallow
+  const lateral: typeof import('./utils/imagenes.js').lateral
   const markRaw: typeof import('vue').markRaw
+  const menbrete: typeof import('./utils/imagenes.js').menbrete
   const nextTick: typeof import('vue').nextTick
   const onActivated: typeof import('vue').onActivated
   const onBeforeMount: typeof import('vue').onBeforeMount
@@ -105,6 +110,9 @@ declare module 'vue' {
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
+    readonly final: UnwrapRef<typeof import('./utils/imagenes.js')['final']>
+    readonly generarMemo: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemo']>
+    readonly generarMemorando: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemorando']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
@@ -119,7 +127,9 @@ declare module 'vue' {
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
     readonly isShallow: UnwrapRef<typeof import('vue')['isShallow']>
+    readonly lateral: UnwrapRef<typeof import('./utils/imagenes.js')['lateral']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
+    readonly menbrete: UnwrapRef<typeof import('./utils/imagenes.js')['menbrete']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
