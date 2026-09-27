@@ -27,11 +27,26 @@ onMounted(() => {
   }
 })
 
+export function clearTokenCookie() {
+  // 1. Borrado básico en la ruta raíz
+  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  document.cookie = "permiso=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+  // 2. Borrado especificado para el dominio principal (si compartes cookies entre subdominios)
+  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.nextmemo.store;";
+  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=memo.nextmemo.store;";
+}
 
 function cerrarSesion() {
-  document.cookie = 'token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+  clearTokenCookie();
   toast.info('Sesión cerrada con éxito')
-  router.push('/login')
+  localStorage.clear();
+  sessionStorage.clear();
+
+  // 3. Redirigir al login y recargar la página para limpiar el estado de la app en memoria
+  router.push('/login').then(() => {
+    window.location.reload();
+  });
 }
 </script>
 
@@ -40,7 +55,6 @@ function cerrarSesion() {
     <!-- Barra superior -->
     <v-app-bar flat border="b" elevation="1" class="px-2 px-md-4">
       <!-- Botón menú móvil -->
-      {{ permiso }} token
       <v-app-bar-nav-icon v-if="!mdAndUp" @click="drawer = !drawer" />
 
       <!-- Logo / Marca -->
