@@ -20,4 +20,4 @@ EXPOSE 3000
 ENV NODE_ENV=production
 
 # 8. Comando para iniciar la API
-CMD ["node", "start"]
+CMD ["npm", "start"]
