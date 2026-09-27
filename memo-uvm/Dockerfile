@@ -9,6 +9,9 @@ RUN npm install
 
 COPY . .
 
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Genera la carpeta /dist
 RUN npm run build-only
 
