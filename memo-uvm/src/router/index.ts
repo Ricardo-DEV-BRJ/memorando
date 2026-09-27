@@ -50,8 +50,11 @@ function getToken(): string | null {
 }
 
 function getPermiso(): string | null {
-  const cookie = document.cookie.split(';')[1].split('=')[1]
-  return cookie
+  if (document.cookie) {
+    const cookie = document.cookie.split(';')[1].split('=')[1]
+    return cookie || null
+  }
+  return null
 }
 
 router.beforeEach((to) => {

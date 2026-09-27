@@ -22,7 +22,9 @@ function isActive(path) {
 }
 
 onMounted(() => {
-  permiso.value = document.cookie.split(';')[1].split('=')[1]
+  if (document.cookie) {
+    permiso.value = document.cookie.split(';')[1].split('=')[1] || null
+  }
 })
 
 

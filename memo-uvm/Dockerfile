@@ -10,8 +10,7 @@ RUN npm install
 COPY . .
 
 # Genera la carpeta /dist
-RUN npm run build
-
+RUN npm run build-only
 
 # ETAPA 2: Servidor Web Nginx
 FROM nginx:alpine AS production-stage
