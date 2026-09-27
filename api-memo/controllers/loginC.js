@@ -19,7 +19,7 @@ class logincontroller {
   authenticate(data) {
     return new Promise((resolve, reject) => {
       model.authenticate(data)
-        .then(({ responsable }) => {
+        .then(({ responsable, permisos }) => {
           const secretKey = process.env.JWT_SECRET
           const token = jwt.sign(
             {
@@ -35,6 +35,7 @@ class logincontroller {
             status: 200,
             message: 'Inicio de sesión exitoso',
             token,
+            permisos,
             responsable,
           })
         })

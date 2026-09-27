@@ -26,6 +26,7 @@ async function iniciarSesion() {
       const token = res.data.token
       if (token) {
         document.cookie = `token=${token}; path=/`
+        document.cookie = `permiso=${res.data.permisos}; path=/`
       }
       toast.success(res.data.message || '¡Bienvenido!')
       router.push('/')
@@ -34,8 +35,8 @@ async function iniciarSesion() {
     }
   } catch (err) {
     console.error(err)
-    if (err.response?.status === 401 || err.response?.status === 403) {
-      errorMsg.value = err.response.data?.message || 'Usuario o contraseña incorrectos'
+    if (err.response?.status === 401 || err.response?.status === 403 || err.response?.status === 404) {
+      errorMsg.value = err.response?.data?.message || 'Usuario o contraseña incorrectos'
     } else {
       errorMsg.value = 'Error al conectar con el servidor'
     }
@@ -102,12 +103,6 @@ async function iniciarSesion() {
                 </span>
               </v-card-text>
             </v-card>
-
-            <!-- Botón de tema -->
-            <div class="d-flex justify-center mt-5">
-              <BotonTema />
-            </div>
-
           </v-col>
         </v-row>
       </v-container>

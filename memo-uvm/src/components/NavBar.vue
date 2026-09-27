@@ -1,26 +1,29 @@
 <script setup>
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useTheme, useDisplay } from 'vuetify'
+import { useDisplay } from 'vuetify'
 import { toast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
-const theme = useTheme()
 const { mdAndUp } = useDisplay()
-
+const permiso = ref(null)
 const drawer = ref(false)
 
 const rutas = [
-  { title: 'Inicio', path: '/', icon: 'mdi-home-outline', iconActive: 'mdi-home' },
-  { title: 'Crear Memo', path: '/memo', icon: 'mdi-file-document-edit-outline', iconActive: 'mdi-file-document-edit' },
-  { title: 'Memorandos', path: '/memorandos', icon: 'mdi-file-document-multiple-outline', iconActive: 'mdi-file-document-multiple' },
-  { title: 'Usuarios', path: '/usuarios', icon: 'mdi-account-group-outline', iconActive: 'mdi-account-group' },
+  { title: 'Inicio', path: '/', icon: 'mdi-home-outline', iconActive: 'mdi-home', permiso: 0 },
+  { title: 'Crear Memo', path: '/memo', icon: 'mdi-file-document-edit-outline', iconActive: 'mdi-file-document-edit', permiso: 0 },
+  { title: 'Memorandos', path: '/memorandos', icon: 'mdi-file-document-multiple-outline', iconActive: 'mdi-file-document-multiple', permiso: 0 },
+  { title: 'Usuarios', path: '/usuarios', icon: 'mdi-account-group-outline', iconActive: 'mdi-account-group', permiso: 1 },
 ]
 
 function isActive(path) {
   return route.path === path
 }
+
+onMounted(() => {
+  permiso.value = document.cookie.split(';')[1].split('=')[1]
+})
 
 
 function cerrarSesion() {
@@ -35,6 +38,7 @@ function cerrarSesion() {
     <!-- Barra superior -->
     <v-app-bar flat border="b" elevation="1" class="px-2 px-md-4">
       <!-- Botón menú móvil -->
+      {{ permiso }} token
       <v-app-bar-nav-icon v-if="!mdAndUp" @click="drawer = !drawer" />
 
       <!-- Logo / Marca -->
@@ -50,12 +54,20 @@ function cerrarSesion() {
 
       <!-- Navegación para pantallas medianas y grandes -->
       <div v-if="mdAndUp" class="d-flex align-center ga-1">
-        <v-btn v-for="item in rutas" :key="item.path" :to="item.path"
-          :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
-          :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
-          class="text-none font-weight-medium rounded-lg px-4">
-          {{ item.title }}
-        </v-btn>
+        <template v-for="item in rutas" :key="item.path">
+          <v-btn v-if="item.permiso == 0" :to="item.path"
+            :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
+            :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
+            class="text-none font-weight-medium rounded-lg px-4">
+            {{ item.title }}
+          </v-btn>
+          <v-btn v-if="item.permiso == 1 && permiso == 1" :to="item.path"
+            :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
+            :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
+            class="text-none font-weight-medium rounded-lg px-4">
+            {{ item.title }}
+          </v-btn>
+        </template>
       </div>
 
       <v-spacer />
@@ -81,7 +93,7 @@ function cerrarSesion() {
         <v-list-item v-for="item in rutas" :key="item.path" :to="item.path"
           :prepend-icon="isActive(item.path) ? item.iconActive : item.icon" :title="item.title"
           :active="isActive(item.path)" color="primary" rounded="lg" @click="drawer = false" />
-        <v-list-item v-if="$vuetify.display.smAndDown" >
+        <v-list-item v-if="$vuetify.display.smAndDown">
           <div class="d-flex align-center ga-2">
             <BotonTema />
             <span>Cambiar tema</span>

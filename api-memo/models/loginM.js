@@ -50,7 +50,7 @@ class loginmodel {
 
   async authenticate(data) {
     return new Promise(async (resolve, reject) => {
-      const sqlLogin = "SELECT clave FROM login WHERE cedula = ?"
+      const sqlLogin = "SELECT clave, permisos FROM login WHERE cedula = ?"
       const sqlUser = "SELECT id, nombre, apellido, cedula, firma, eliminado FROM responsable WHERE cedula = ?"
       try {
         const [rows] = await db.query(sqlLogin, [data.cedula])
@@ -69,7 +69,7 @@ class loginmodel {
           return reject({ message: "Responsable no encontrado", status: 404 })
         }
         await db.query("UPDATE login SET last_login = CURRENT_TIMESTAMP WHERE cedula = ?", [data.cedula])
-        resolve({ message: "Autenticación exitosa", status: 200, responsable: userRows[0] })
+        resolve({ message: "Autenticación exitosa", status: 200, responsable: userRows[0], permisos: rows[0].permisos })
       } catch (error) {
         reject({ message: "Error al autenticar", status: 500, error: error.message })
       }
