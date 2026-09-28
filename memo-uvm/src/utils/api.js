@@ -5,10 +5,13 @@ import router from '@/router';
 export async function apiCall(endpoint, data = {}, method = 'GET') {
     return new Promise((resolve, reject) => {
         const url = import.meta.env.VITE_API_URL + endpoint;
+        const tokenCookie = document.cookie
+            .split(';')
+            .find(row => row.trim().startsWith('token='));
         const token = document.cookie.split(';').find(row => row.startsWith('token='));
         const headers = {
             'Content-Type': 'application/json',
-            'Authorization': token ? `Bearer ${token.split('token=')[1]}` : null
+            'Authorization': tokenCookie ? `Bearer ${tokenCookie.trim().split('token=')[1]}` : null
         };
         const options = {
             method,
