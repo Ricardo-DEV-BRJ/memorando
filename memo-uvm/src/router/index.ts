@@ -48,12 +48,16 @@ function getToken(): string | null {
   return cookie ? cookie.split('=')[1] : null
 }
 
-function getPermiso(): string | null {
+function getPermiso(): number {
   if (document.cookie) {
-    const cookie = document.cookie.split(';')[1].split('=')[1]
-    return cookie || null
+    const permisoCookie = document.cookie
+      .split(';')
+      .find(row => row.trim().startsWith('permiso='));
+    if (permisoCookie) {
+      return parseInt(permisoCookie.trim().split('permiso=')[1]) || 0;
+    }
   }
-  return null
+  return 0
 }
 
 router.beforeEach((to) => {
@@ -68,7 +72,7 @@ router.beforeEach((to) => {
     return '/login'
   }
   // Si tiene permiso 0 y quiere ir a usuarios → redirigir al inicio
-  if (permiso !== "1" && to.path === "/usuarios") {
+  if (permiso < 1 && to.path === "/usuarios") {
     return '/'
   }
 })

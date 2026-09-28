@@ -26,7 +26,8 @@ const textoBase = 'Sirva la presente para dar salida de los siguientes equipos p
 const datos = ref({
   respSeleccionado: '',
   fecha: '',
-  ubicacion: '',
+  ubicacion: null,
+  pa_quien: 'Centro Aldea Tecnológica / Sede Estovacuy',
   asunto: 'Salida - Entrada de equipos',
   descripcion: textoBase,
 })
@@ -35,7 +36,8 @@ function restablecer() {
   datos.value = {
     respSeleccionado: '',
     fecha: '',
-    ubicacion: '',
+    ubicacion: null,
+    pa_quien: 'Centro Aldea Tecnológica / Sede Estovacuy',
     asunto: 'Salida - Entrada de equipos',
     descripcion: textoBase,
   }
@@ -104,6 +106,7 @@ async function generarMemorando() {
     respSeleccionado: datos.value.respSeleccionado,
     fecha: datos.value.fecha,
     ubicacion: datos.value.ubicacion,
+    pa_quien: datos.value.pa_quien ? datos.value.pa_quien : 'Centro Aldea Tecnológica / Sede Estovacuy',
     asunto: datos.value.asunto,
     descripcion: datos.value.descripcion,
     equiposSeleccionados: equiposSeleccionados.value,
@@ -123,6 +126,22 @@ async function generarMemorando() {
     })
 }
 
+function obtenerDatos() {
+  const dataMemo = JSON.parse(localStorage.getItem('memo'))
+  if (dataMemo) {
+    datos.value = {
+      respSeleccionado: dataMemo.id_responsable,
+      fecha: new Date(dataMemo.fecha,).toISOString().split('T')[0],
+      ubicacion: dataMemo.id_ubicacion,
+      pa_quien: dataMemo.pa_quien,
+      asunto: dataMemo.asunto,
+      descripcion: dataMemo.descripcion,
+    }
+    equiposSeleccionados.value = dataMemo.equipos.map(item => item.id),
+    console.log(datos.value)
+  }
+}
+
 watch(() => datos.value.fecha, (newVal) => {
   if (newVal) {
     const [anio, mes, dia] = newVal.split('-')
@@ -136,6 +155,7 @@ onMounted(() => {
   cargaInicialEquipos()
   cargarResponsables()
   cargarUbicaciones()
+  obtenerDatos()
 })
 </script>
 
@@ -174,7 +194,6 @@ onMounted(() => {
           class="mb-3" icon="mdi-alert-circle">
           Debe tener al menos un equipo en la lista seleccionado.
         </v-alert>
-
         <v-data-table v-model="equiposSeleccionados" :headers="headers" :items="equipos" :search="buscar" show-select>
           <template #item.imagen="{ item }">
             <v-img v-if="item.imagen" :src="item.imagen" max-width="100" max-height="100" />
@@ -206,7 +225,11 @@ onMounted(() => {
                 :item-props="listaUbicaciones" label="Ubicación" density="compact" variant="outlined"
                 prepend-inner-icon="mdi-map-marker" :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12" md="3">
+              <v-text-field v-model="datos.pa_quien" label="Para quien" type="text" density="compact" variant="outlined"
+                prepend-inner-icon="mdi-account" :rules="[reglas.required]" />
+            </v-col>
+            <v-col cols="12" md="3">
               <v-text-field v-model="datos.asunto" label="Asunto" type="text" density="compact" variant="outlined"
                 prepend-inner-icon="mdi-text-box" :rules="[reglas.required]" />
             </v-col>

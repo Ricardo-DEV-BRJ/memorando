@@ -3,7 +3,7 @@ import db from '../database/db.js';
 class memoModel {
   all() {
     return new Promise(async (resolve, reject) => {
-      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id;'
+      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, (SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id;'
       try {
         const [rows] = await db.query(sql)
         if (rows.length > 0) {

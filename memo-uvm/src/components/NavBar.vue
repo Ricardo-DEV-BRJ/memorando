@@ -23,7 +23,10 @@ function isActive(path) {
 
 onMounted(() => {
   if (document.cookie) {
-    permiso.value = document.cookie.split(';')[1].split('=')[1] || null
+    const permisoCookie = document.cookie
+      .split(';')
+      .find(row => row.trim().startsWith('permiso='));
+    permiso.value = permisoCookie ? permisoCookie.trim().split('permiso=')[1] : null
   }
 })
 

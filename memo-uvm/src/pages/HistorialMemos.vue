@@ -14,7 +14,7 @@ const headersEquipos = [
 const memorandos = ref([])
 const cargando = ref(false)
 const busqueda = ref('')
-
+const copiarCargando = ref(false)
 const headers = [
   { key: 'fecha', title: 'Fecha', sortable: true },
   { key: 'ubicacion', title: 'Ubicación', sortable: true },
@@ -28,6 +28,7 @@ const headers = [
 const diagDetalle = ref(false)
 const memoSeleccionado = ref(null)
 const cargandoDetalle = ref(false)
+const memoCopiar = ref([])
 
 function formatFecha(fecha) {
   if (!fecha) return '-'
@@ -69,6 +70,23 @@ function verDetalle(item) {
     .finally(() => {
       cargandoDetalle.value = false
     })
+}
+
+async function copiarMemo(item) {
+  copiarCargando.value = true
+  await apiCall(`memorandos/${item.id}`)
+    .then((res) => {
+      memoCopiar.value = res.data.memos
+    })
+    .catch((err) => {
+      console.error(err)
+      toast.error('Error al cargar los detalles del memorando')
+    })
+    .finally(() => {
+      copiarCargando.value = false
+    })
+  localStorage.setItem('memo', JSON.stringify(memoCopiar.value))
+  router.push('/memo')
 }
 
 function obtenerDatosMemo(datos) {
@@ -183,6 +201,8 @@ onMounted(() => {
           <template v-slot:item.acciones="{ item }">
             <v-btn icon="mdi-eye-outline" variant="tonal" size="small" color="primary" title="Ver detalle del memorando"
               @click="verDetalle(item)" />
+            <v-btn icon="mdi-content-copy" variant="tonal" size="small" color="primary" title="Copiar memorando"
+              @click="copiarMemo(item)" :loading="copiarCargando" />
           </template>
         </v-data-table>
       </v-card-text>
@@ -215,12 +235,12 @@ onMounted(() => {
               <div class="text-caption text-medium-emphasis">Responsable</div>
               <div class="font-weight-medium">{{ memoSeleccionado.nombre + ' ' + memoSeleccionado.apellido }} (V-{{
                 memoSeleccionado.cedula
-                }})</div>
+              }})</div>
             </v-col>
             <v-col cols="12" sm="6">
               <div class="text-caption text-medium-emphasis">Ubicación</div>
               <div class="font-weight-medium">{{ memoSeleccionado.nom_dir }} - {{ memoSeleccionado.direccion
-                }}
+              }}
               </div>
             </v-col>
             <v-col cols="12">
