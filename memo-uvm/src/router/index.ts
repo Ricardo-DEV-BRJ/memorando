@@ -6,7 +6,6 @@
 
 // Composables
 import { createRouter, createWebHistory } from 'vue-router'
-import Index from '@/pages/index.vue'
 import Inicio from '@/pages/Inicio.vue'
 import Login from '@/pages/Login.vue'
 import Usuarios from '@/pages/Usuarios.vue'

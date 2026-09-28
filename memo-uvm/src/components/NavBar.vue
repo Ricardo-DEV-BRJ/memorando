@@ -27,7 +27,7 @@ onMounted(() => {
   }
 })
 
-export function clearTokenCookie() {
+function clearTokenCookie() {
   // 1. Borrado básico en la ruta raíz
   document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   document.cookie = "permiso=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
@@ -44,9 +44,10 @@ function cerrarSesion() {
   sessionStorage.clear();
 
   // 3. Redirigir al login y recargar la página para limpiar el estado de la app en memoria
-  router.push('/login').then(() => {
-    window.location.reload();
-  });
+  window.location.href = '/login';
+  // router.push('/login').then(() => {
+  //   window.location.reload();
+  // });
 }
 </script>
 
