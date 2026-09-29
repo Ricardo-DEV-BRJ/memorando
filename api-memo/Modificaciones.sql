@@ -1,0 +1,1 @@
+ALTER TABLE login ADD per_super BOOLEAN  DEFAULT 0;

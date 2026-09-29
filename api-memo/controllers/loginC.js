@@ -27,6 +27,7 @@ class logincontroller {
               cedula: responsable.cedula,
               nombre: responsable.nombre,
               apellido: responsable.apellido,
+              permisos: permisos
             },
             secretKey,
             { expiresIn: '8h' }
@@ -46,6 +47,18 @@ class logincontroller {
   getOne(id) {
     return new Promise((resolve, reject) => {
       model.getOne(id)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    });
+  }
+
+  asignarPermisos(id, data) {
+    return new Promise((resolve, reject) => {
+      model.asignarPermisos(id, data)
         .then((res) => {
           resolve(res)
         })

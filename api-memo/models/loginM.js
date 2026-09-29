@@ -36,12 +36,32 @@ class loginmodel {
         const sql = "SELECT permisos FROM login WHERE id_responsable = ?"
         const [rows] = await db.query(sql, [user_id])
         if (rows.length === 0) {
-          return reject({ message: "No tienes permiso para realizar esta acción 1", status: 403 })
+          return reject({ message: "No tienes permiso para realizar esta acción", status: 403 })
         }
-        if (rows[0].permisos === 0) {
-          return reject({ message: "No tienes permiso para realizar esta acción 2", status: 403 })
+        if (rows[0].permisos === 0 || rows[0].permisos === 2) {
+          return reject({ message: "No tienes permiso para realizar esta acción", status: 403 })
         }
         resolve();
+      } catch (error) {
+        reject(error);
+      }
+    })
+  }
+
+  asignarPermisos(id, data){
+    return new Promise(async (resolve, reject) => {
+      try {
+        await this.permisos(data.user_id)
+        const  sqlAdmin = 'SELECT id_responsable FROM login WHERE per_super = ?'
+        const [rowsAdmin] = await db.query(sqlAdmin, [1])
+        console.log(rowsAdmin)
+        console.log(id)
+        if (rowsAdmin.some(row => row.id_responsable ==  id)) {
+          return reject({ message: "La acción no puede ser realizada, el usuario es administrador", status: 403 })
+        }
+        const sql = "UPDATE login SET permisos = ? WHERE id_responsable = ?"
+        const [rows] = await db.query(sql, [data.permisos, id])
+        resolve({ status: 200, message: "Permisos asignados con éxito", data: rows });
       } catch (error) {
         reject(error);
       }
@@ -87,8 +107,8 @@ class loginmodel {
           await this.update(rowsUsuario[0].id, { clave: hashedPass, id_responsable: data.user_id })
           return resolve({ message: "Contraseña actualizada con éxito", status: 201 })
         }
-        const sql = "INSERT INTO login (id_responsable, cedula, clave) VALUES (?, ?, ?)"
-        const params = [data.id_responsable, data.cedula, hashedPass];
+        const sql = "INSERT INTO login (id_responsable, cedula, clave, permisos) VALUES (?, ?, ?, ?)"
+        const params = [data.id_responsable, data.cedula, hashedPass, data.permisos];
         const [rows] = await db.query(sql, params);
         resolve({ status: 201, message: "Acceso creado con éxito", data: rows });
       } catch (error) {

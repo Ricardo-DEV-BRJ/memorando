@@ -1,4 +1,6 @@
 <script setup>
+import PermisosForm from '@/components/Forms/PermisosForm.vue';
+
 // ── Estado ──────────────────────────────────────────────
 const usuarios = ref([])
 const cargando = ref(false)
@@ -14,6 +16,12 @@ const headers = [
   { key: 'permisos', title: 'Permisos', sortable: false },
   { key: 'acciones', title: 'Opciones', sortable: false },
 ]
+const opciones = [
+  { title: 'Editar', icon: 'mdi-pencil', action: 'abrirFormulario' },
+  { title: 'Eliminar', icon: 'mdi-delete', action: 'abrirEliminarRespo' },
+  { title: 'Activar', icon: 'mdi-check-circle', action: 'abrirActivarUsuario' },
+  { title: 'Acceso', icon: 'mdi-account', action: 'abrirAccesoLogin' }
+]
 
 const diagActivarUser = ref(false)
 const userSeleccionado = ref(null)
@@ -25,6 +33,7 @@ const claveAcceso = ref('')
 const mostrarPassword = ref(false)
 const cargandoAcceso = ref(false)
 const validadoAcceso = ref(null)
+const permisosFormRef = ref(null)
 
 function cargaInicial() {
   apiCall('login/')
@@ -58,7 +67,7 @@ function eliminarResponsable(item) {
     .catch((err) => {
       toast.error('Error al conectar con el servidor');
     });
-    apiCall(`login/${userSeleccionado.value.id}`, {}, 'DELETE')
+  apiCall(`login/${item.id}`, {}, 'DELETE')
     .then((res) => {
       if (res.status === 200) {
         toast.success(res.data.message || 'Usuario eliminado con éxito');
@@ -106,7 +115,7 @@ function activarUsuario() {
     })
     .finally(() => {
       cargandoActivar.value = false;
-    });    
+    });
 }
 
 function abrirAccesoLogin(item) {
@@ -202,28 +211,52 @@ onMounted(() => cargaInicial())
             <v-chip color="error" variant="tonal" size="small" prepend-icon="mdi-account-cancel" v-else>
               Sin acceso
             </v-chip>
+            <v-chip :color="item.eliminado === 1 ? 'success' : 'error'" variant="tonal" size="small"
+              :prepend-icon="item.eliminado === 1 ? 'mdi-shield-crown' : 'mdi-account'">
+              {{ item.eliminado === 0 ? 'Eliminado' : 'Activo' }}
+            </v-chip>
           </template>
 
           <!-- Acciones -->
           <template v-slot:item.acciones="{ item }">
-            <div class="d-flex justify-center ga-1">
-              <v-btn icon="mdi-pencil" variant="tonal" size="small" color="primary" title="Editar responsable"
-                @click="responsablesFormRef.abrir(item)">
-              </v-btn>
-              <v-btn icon="mdi-key-plus" variant="tonal" size="small" color="warning" title="Dar acceso al login"
-                @click="abrirAccesoLogin(item)">
-              </v-btn>
-              <v-btn v-if="item.eliminado == 0" icon="mdi-account-check" variant="tonal" size="small" color="success"
-                title="Activar responsable" @click="abrirActivarUsuario(item)">
-              </v-btn>
-              <v-btn icon="mdi-delete" variant="tonal" size="small" color="error" title="Eliminar acceso"
-                @click="abrirEliminarRespo(item)" />
-            </div>
+            <v-menu>
+              <template v-slot:activator="{ props }">
+                <v-btn color="warning" v-bind="props" size="small" icon="mdi-dots-vertical" variant="tonal"></v-btn>
+              </template>
+              <v-list>
+                <v-list-item>
+                  <v-btn icon="mdi-pencil" variant="tonal" size="small" color="primary" title="Editar responsable"
+                    @click="responsablesFormRef.abrir(item)">
+                  </v-btn>
+                </v-list-item>
+                <v-list-item>
+                  <v-btn icon="mdi-delete" variant="tonal" size="small" color="error" title="Eliminar acceso"
+                    @click="abrirEliminarRespo(item)">
+                  </v-btn>
+                </v-list-item>
+                <v-list-item v-if="item.eliminado == 0">
+                  <v-btn icon="mdi-check-circle" variant="tonal" size="small" color="success"
+                    title="Activar responsable" @click="abrirActivarUsuario(item)">
+                  </v-btn>
+                </v-list-item>
+                <v-list-item>
+                  <v-btn icon="mdi-key-plus" variant="tonal" size="small" color="warning" title="Dar acceso"
+                    @click="abrirAccesoLogin(item)">
+                  </v-btn>
+                </v-list-item>
+                <v-list-item>
+                  <v-btn icon="mdi-account-convert" variant="tonal" size="small" color="secondary"
+                    title="Cambiar permisos" @click="permisosFormRef.abrir({id: item.id })">
+                  </v-btn>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </template>
         </v-data-table>
       </v-card-text>
     </v-card>
   </v-container>
+  <permisos-form ref="permisosFormRef" @guardado="cargaInicial" />
   <responsables-form ref="responsablesFormRef" @guardado="cargaInicial" />
   <confirm-dialog ref="confirmDialogRef" @confirmar="eliminarResponsable" />
   <!-- Modal Activar Responsable -->

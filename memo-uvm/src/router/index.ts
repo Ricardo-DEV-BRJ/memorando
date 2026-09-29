@@ -28,7 +28,7 @@ const router = createRouter({
     {
       path: '/usuarios',
       component: Usuarios,
-      meta: { title: 'Usuarios', requiresAuth: true }
+      meta: { title: 'Usuarios', requiresAuth: true, adminUser: true }
     },
     {
       path: '/memo',
@@ -72,7 +72,7 @@ router.beforeEach((to) => {
     return '/login'
   }
   // Si tiene permiso 0 y quiere ir a usuarios → redirigir al inicio
-  if (permiso < 1 && to.path === "/usuarios") {
+  if (to.meta.adminUser && permiso != 1) {
     return '/'
   }
 })
