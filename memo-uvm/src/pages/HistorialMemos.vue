@@ -103,7 +103,7 @@ function obtenerDatosMemo(datos) {
     motivo: datos.descripcion,
     firma: datos.firma,
     para: datos.pa_quien,
-    ubicacion: `que se dearrollara en ${datos.nom_dir} ${datos.direccion}`,
+    ubicacion: `que se desarrollara en ${datos.nom_dir} ${datos.direccion}`,
     firmante: datos.nombre + ' ' + datos.apellido
   }
   generarMemo(datosMemo)
