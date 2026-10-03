@@ -22,7 +22,8 @@ let memoData = {
     'Repartidor RUIJIE REYEE (Color blanco dos antenas)' //[cite: 1]
   ],
   firmante: 'José Reyes', //[cite: 1]
-  ubicacion: 'Que se dearrollara en Estovacuy' //[cite: 1]
+  ubicacion: 'Que se dearrollara en Estovacuy', //[cite: 1]
+  urlMemo: 'hola'
 };
 
 // Convierte cualquier formato de imagen (WebP, JPEG, raw base64, etc.) a PNG Data URL compatible con pdfmake
@@ -34,9 +35,17 @@ const convertirADataUrlPng = (imagenSrc) => {
 
     let src = imagenSrc.trim();
 
-    // Si viene la cadena base64 cruda sin prefijo data:image
+    // Si viene la cadena base64 cruda sin prefijo data:image, detectar formato por firma mágica
     if (!src.startsWith('data:image/')) {
-      src = `data:image/png;base64,${src}`;
+      if (src.startsWith('iVBORw')) {
+        src = `data:image/png;base64,${src}`;
+      } else if (src.startsWith('/9j/')) {
+        src = `data:image/jpeg;base64,${src}`;
+      } else if (src.startsWith('UklGR')) {
+        src = `data:image/webp;base64,${src}`;
+      } else {
+        src = `data:image/png;base64,${src}`;
+      }
     }
 
     const img = new Image();
@@ -61,8 +70,14 @@ const convertirADataUrlPng = (imagenSrc) => {
       }
     };
     img.onerror = () => {
-      // Si falló como PNG y era base64 puro, intentar como JPEG
-      if (!imagenSrc.trim().startsWith('data:image/')) {
+      // Si falló, intentar como otros formatos si era base64 puro
+      const rawBase64 = imagenSrc.trim().replace(/^data:image\/[^;]+;base64,/, '');
+      const formatos = ['image/png', 'image/webp', 'image/jpeg'];
+      let idx = 0;
+
+      const intentarSiguiente = () => {
+        if (idx >= formatos.length) return resolve(null);
+        const mime = formatos[idx++];
         const fallbackImg = new Image();
         fallbackImg.crossOrigin = 'anonymous';
         fallbackImg.onload = () => {
@@ -74,14 +89,14 @@ const convertirADataUrlPng = (imagenSrc) => {
             ctx.drawImage(fallbackImg, 0, 0);
             resolve(canvas.toDataURL('image/png'));
           } catch {
-            resolve(null);
+            intentarSiguiente();
           }
         };
-        fallbackImg.onerror = () => resolve(null);
-        fallbackImg.src = `data:image/jpeg;base64,${imagenSrc.trim()}`;
-      } else {
-        resolve(null);
-      }
+        fallbackImg.onerror = intentarSiguiente;
+        fallbackImg.src = `data:${mime};base64,${rawBase64}`;
+      };
+
+      intentarSiguiente();
     };
     img.src = src;
   });
@@ -93,7 +108,7 @@ export const generarMemo = async (datos) => {
     cantidadEquiposPorHoja = 5;
   } else if (datos.equipos.length > 6) {
     cantidadEquiposPorHoja = 7;
-  } else if(datos.equipos.length >= 10){
+  } else if (datos.equipos.length >= 10) {
     cantidadEquiposPorHoja = 8;
   }
   await generarMemorando();
@@ -154,17 +169,44 @@ export const generarMemorando = async () => {
 
     background: function (currentPage) {
       return [
-        { image: b64Lateral, width: 100, height: 792, absolutePosition: { x: 0, y: 0 } }
-      ];
+        { image: b64Lateral, width: 100, height: 792, absolutePosition: { x: 0, y: 0 } },
+        // ...(qrPng ? [{ image: qrPng, width: 70, height: 70, absolutePosition: { x: 500, y: 127 } }] : [])
+        {
+          stack: [
+            {
+              qr: memoData.urlMemo,
+              fit: 80,
+              alignment: 'center',
+              eccLevel: 'M'
+            },
+            {
+              text: 'Escanear para verificar',
+              fontSize: 7,
+              alignment: 'center',
+              margin: [0, 4, 0, 0],
+              color: '#555555'
+            }
+          ],
+          absolutePosition: { x: 450, y: 127 },
+          width: 70, height: 70
+        }
+      ]
     },
     header: function () {
-      return { image: b64Membrete, width: 400, margin: [120, 20, 0, 0] };
+      return [
+        { image: b64Membrete, width: 400, margin: [120, 20, 0, 0] },
+      ];
     },
     footer: function () {
       return { image: b64Footer, width: 500, margin: [60, 0, 0, 20] };
     },
 
     content: [
+      {
+        columns: [
+          { width: '*', text: memoData.folio_me, bold: true }, //[cite: 1]
+        ],
+      },
       {
         columns: [
           { width: 80, text: 'PARA:', bold: true },

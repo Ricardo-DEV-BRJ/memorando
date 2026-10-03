@@ -1,4 +1,6 @@
 import memoModel from '../models/memosM.js'
+import jwt from "jsonwebtoken"
+import crypto from 'crypto'
 const model = new memoModel()
 
 class memoController {
@@ -18,6 +20,32 @@ class memoController {
     return new Promise((resolve, reject) => {
       model.getOne(id)
         .then((res) => {
+          const secretKey = process.env.JWT_SECRET
+          const hash = crypto
+            .createHmac('sha256', secretKey)
+            .update(res.data.folio_me)
+            .digest('hex')
+            .substring(0, 12);
+          res.token = hash
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    });
+  }
+
+  documentoQr(folio) {
+    return new Promise((resolve, reject) => {
+      model.documentoQr(folio)
+        .then((res) => {
+          const secretKey = process.env.JWT_SECRET
+          const hash = crypto
+            .createHmac('sha256', secretKey)
+            .update(res.data.folio_me)
+            .digest('hex')
+            .substring(0, 12);
+          res.token = hash
           resolve(res)
         })
         .catch((err) => {

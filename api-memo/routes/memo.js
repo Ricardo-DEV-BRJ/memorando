@@ -1,6 +1,7 @@
 import express from 'express';
 import memoController from '../controllers/memoC.js';
 import { verifyToken } from '../middlewares/auth.middleware.js';
+import { verificarDocumento } from '../middlewares/verificacionMemo.js';
 
 const router = express.Router();
 const controller = new memoController();
@@ -17,7 +18,16 @@ router.get('/', verifyToken, async (req, res) => {
 router.get('/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.getOne(req.params.id);
-    res.status(data.status).json({ message: data.message, memos: data.data });
+    res.status(data.status).json({ message: data.message, memos: data.data, tokenMemo: data.token });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/documento/:token', verifyToken, verificarDocumento, async (req, res) => {
+  try {
+    const data = await controller.documentoQr(req.params.token);
+    res.status(data.status).json({ message: data.message, memos: data.data, tokenMemo: data.token });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
