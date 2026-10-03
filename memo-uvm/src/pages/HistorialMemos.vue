@@ -2,7 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from '@/composables/useToast'
-import { generarMemorando, generarMemo } from '@/utils/imprimir'
+import { generarMemo } from '@/utils/imprimir'
+
 const router = useRouter()
 
 const headersEquipos = [
@@ -108,9 +109,13 @@ function obtenerDatosMemo(datos) {
     ubicacion: `que se desarrollara en ${datos.nom_dir} ${datos.direccion}`,
     firmante: datos.nombre + ' ' + datos.apellido,
     folio_me: datos.folio_me,
-    urlMemo: `${window.location.origin}/verificacion/${tokenQr.value}`
+    urlMemo: `${window.location.origin}/verificacion/${datos.folio_me}`
   }
   generarMemo(datosMemo)
+}
+
+function codificarToken() {
+  console.log('nada')
 }
 
 onMounted(() => {
@@ -292,6 +297,9 @@ onMounted(() => {
         </v-card-text>
 
         <v-card-actions class="px-4 pb-4 justify-end">
+          <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" @click="codificarToken()">
+            Token
+          </v-btn>
           <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" @click="obtenerDatosMemo(memoSeleccionado)">
             Generar memorando
           </v-btn>

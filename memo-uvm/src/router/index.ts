@@ -11,6 +11,7 @@ import Login from '@/pages/Login.vue'
 import Usuarios from '@/pages/Usuarios.vue'
 import Memo from '@/pages/Memo.vue'
 import HistorialMemos from '@/pages/HistorialMemos.vue'
+import VerificacionMemos from '@/pages/VerificacionMemos.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -19,6 +20,11 @@ const router = createRouter({
       path: '/login',
       component: Login,
       meta: { title: 'Login', public: true }
+    },
+    {
+      path: '/verificacion/:folio',
+      component: VerificacionMemos,
+      meta: { title: 'Verificación de Memorando', requiresAuth: false, public: true }
     },
     {
       path: '/',
