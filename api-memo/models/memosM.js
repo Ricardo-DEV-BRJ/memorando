@@ -3,7 +3,7 @@ import db from '../database/db.js';
 class memoModel {
   all() {
     return new Promise(async (resolve, reject) => {
-      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, (SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id;'
+      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, (SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id;'
       try {
         const [rows] = await db.query(sql)
         if (rows.length > 0) {
@@ -19,12 +19,31 @@ class memoModel {
 
   getOne(id) {
     return new Promise(async (resolve, reject) => {
-      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id WHERE m.id = ?'
+      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id WHERE m.id = ?'
       const sql2 = 'SELECT e.id, e.nombre, e.serial, e.descripcion, e.estado FROM equipo e INNER JOIN equipo_memo em ON e.id = em.id_equipo WHERE em.id_memo = ?'
       const valores = [id]
       try {
         const [rows] = await db.query(sql, valores)
         const [rows2] = await db.query(sql2, valores)
+        if (rows.length > 0) {
+          resolve({ status: 200, data: { ...rows[0], equipos: rows2 }, message: 'Consulta con exito' })
+        } else {
+          resolve({ status: 200, data: [], message: 'Sin resultados' })
+        }
+      } catch (error) {
+        reject(error)
+      }
+    });
+  }
+
+  documentoQr(folio) {
+    return new Promise(async (resolve, reject) => {
+      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id WHERE m.folio_me = ?'
+      const sql2 = 'SELECT e.id, e.nombre, e.serial, e.descripcion, e.estado FROM equipo e INNER JOIN equipo_memo em ON e.id = em.id_equipo WHERE em.id_memo = ?'
+      const valores = [folio]
+      try {
+        const [rows] = await db.query(sql, valores)
+        const [rows2] = await db.query(sql2, rows[0].id)
         if (rows.length > 0) {
           resolve({ status: 200, data: { ...rows[0], equipos: rows2 }, message: 'Consulta con exito' })
         } else {
@@ -46,9 +65,12 @@ class memoModel {
         const sqlMemo = 'INSERT INTO memorando (id_responsable, id_ubicacion, asunto, fecha, descripcion, pa_quien, creado_por) VALUES (?,?,?,?,?,?,?)';
         const valoresMemo = [respSeleccionado, ubicacion, asunto, fecha, descripcion, pa_quien, creado_por];
         const [resultMemo] = await connection.query(sqlMemo, valoresMemo);
-
         const idMemo = resultMemo.insertId;
-
+        const year = new Date().getFullYear()
+        const idFormateado = String(idMemo).padStart(5, '0');
+        const folio_me = `ALDEA-${year}-${idFormateado}`
+        const sqlFolio = 'UPDATE memorando SET folio_me = ? WHERE id = ?'
+        await connection.query(sqlFolio, [folio_me, idMemo])
         // 2. Insertar todos los equipos seleccionados al mismo tiempo (Bulk Insert)
         if (equiposSeleccionados && equiposSeleccionados.length > 0) {
           const valoresEquipos = equiposSeleccionados.map((equipo) => [

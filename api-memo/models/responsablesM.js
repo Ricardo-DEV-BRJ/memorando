@@ -3,7 +3,7 @@ import db from '../database/db.js';
 class responsablesModel {
     all() {
         return new Promise(async (resolve, reject) => {
-            const sql = 'SELECT * FROM responsable'
+            const sql = 'SELECT r.id, r.nombre,r.apellido, r.cedula, r.firma, r.eliminado FROM responsable r INNER JOIN login l ON r.id = l.id_responsable WHERE l.permisos <> 3;'
             try {
                 const [rows] = await db.query(sql)
                 if (rows.length > 0) {

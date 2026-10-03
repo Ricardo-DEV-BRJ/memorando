@@ -41,13 +41,22 @@ function clearTokenCookie() {
 }
 
 function cerrarSesion() {
-  clearTokenCookie();
-  toast.info('Sesión cerrada con éxito')
+  // clearTokenCookie();
+  apiCall('login/logout', {}, 'POST')
+    .then((res) => {
+      if (res.status === 200 || res.status === 201) {
+        toast.info('Sesión cerrada con éxito')
+        router.push('/login')
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      toast.error(err.response?.data?.message);
+    });
   localStorage.clear();
   sessionStorage.clear();
 
   // 3. Redirigir al login y recargar la página para limpiar el estado de la app en memoria
-  window.location.href = '/login';
   // router.push('/login').then(() => {
   //   window.location.reload();
   // });

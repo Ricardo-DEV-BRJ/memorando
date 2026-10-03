@@ -43,6 +43,26 @@ router.post('/acceso', verifyToken, async (req, res) => {
   }
 });
 
+router.put('/permisos/:id', verifyToken, async (req, res) => {
+  try {
+    req.body.user_id = req.user_id;
+    const data = await controller.asignarPermisos(req.params.id, req.body);
+    if (req.params.id == req.user_id) {
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/' // Es crucial que el path coincida con el de creación
+      });
+      res.status(data.status).json({ message: 'Permisos asignados con éxito, recargue la página'});
+    } else {
+      res.status(data.status).json(data);
+    }
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message });
+  }
+});
+
 router.put('/:id', verifyToken, async (req, res) => {
   try {
     req.body.user_id = req.user_id;
@@ -61,6 +81,20 @@ router.delete('/:id', verifyToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+router.post('/logout', (req, res) => {
+  // El nombre de la cookie debe ser exactamente el mismo que usaste al crearla
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/' // Es crucial que el path coincida con el de creación
+  });
+
+  return res.status(200).json({
+    message: 'Sesión cerrada exitosamente'
+  });
 });
 
 export default router;

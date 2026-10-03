@@ -2,7 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from '@/composables/useToast'
-import { generarMemorando, generarMemo } from '@/utils/imprimir'
+import { generarMemo } from '@/utils/imprimir'
+
 const router = useRouter()
 
 const headersEquipos = [
@@ -12,6 +13,7 @@ const headersEquipos = [
 ]
 // Lista de Memorandos
 const memorandos = ref([])
+const tokenQr = ref('')
 const cargando = ref(false)
 const busqueda = ref('')
 const copiarCargando = ref(false)
@@ -19,9 +21,9 @@ const headers = [
   { key: 'fecha', title: 'Fecha', sortable: true },
   { key: 'ubicacion', title: 'Ubicación', sortable: true },
   { key: 'responsable', title: 'Responsable', sortable: true },
-  { key: 'asunto', title: 'Asunto', sortable: false },
-  { key: 'total_equipos', title: 'Equipos', sortable: false },
-  { key: 'acciones', title: 'Opciones', sortable: false },
+  { key: 'asunto', title: 'Folio', subtitle: 'Asunto', sortable: true },
+  { key: 'total_equipos', title: 'Equipos', sortable: true },
+  { key: 'acciones', title: 'Opciones', sortable: true },
 ]
 
 // Modal de Detalles
@@ -62,6 +64,7 @@ function verDetalle(item) {
   apiCall(`memorandos/${item.id}`)
     .then((res) => {
       memoSeleccionado.value = res.data.memos
+      tokenQr.value = res.data.tokenMemo
     })
     .catch((err) => {
       console.error(err)
@@ -104,9 +107,15 @@ function obtenerDatosMemo(datos) {
     firma: datos.firma,
     para: datos.pa_quien,
     ubicacion: `que se desarrollara en ${datos.nom_dir} ${datos.direccion}`,
-    firmante: datos.nombre + ' ' + datos.apellido
+    firmante: datos.nombre + ' ' + datos.apellido,
+    folio_me: datos.folio_me,
+    urlMemo: `${window.location.origin}/verificacion/${datos.folio_me}`
   }
   generarMemo(datosMemo)
+}
+
+function codificarToken() {
+  console.log('nada')
 }
 
 onMounted(() => {
@@ -149,6 +158,14 @@ onMounted(() => {
         <v-data-table :headers="headers" :items="memorandos" :search="busqueda" :loading="cargando"
           no-data-text="No hay memorandos registrados" loading-text="Cargando memorandos..."
           items-per-page-text="Memorandos por página" :mobile="$vuetify.display.smAndDown">
+          <template #header.asunto="{ column }">
+            <p class="my-0">
+              {{ column.title }}
+            </p>
+            <small>
+              {{ column.subtitle }}
+            </small>
+          </template>
           <!-- 1. Fecha -->
           <template v-slot:item.fecha="{ item }">
             <div class="d-flex align-center ga-2 py-1">
@@ -185,6 +202,9 @@ onMounted(() => {
 
           <!-- Asunto -->
           <template v-slot:item.asunto="{ item }">
+            <span class="text-truncate d-inline-block" style="max-width: 220px;" :title="item.asunto">
+              {{ item.folio_me }}
+            </span>
             <span class="text-truncate d-inline-block" style="max-width: 220px;" :title="item.asunto">
               {{ item.asunto }}
             </span>
@@ -277,6 +297,9 @@ onMounted(() => {
         </v-card-text>
 
         <v-card-actions class="px-4 pb-4 justify-end">
+          <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" @click="codificarToken()">
+            Token
+          </v-btn>
           <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" @click="obtenerDatosMemo(memoSeleccionado)">
             Generar memorando
           </v-btn>

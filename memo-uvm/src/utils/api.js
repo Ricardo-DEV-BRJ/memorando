@@ -16,7 +16,8 @@ export async function apiCall(endpoint, data = {}, method = 'GET') {
         const options = {
             method,
             headers,
-            data: data ? data : {}
+            data: data ? data : {},
+            withCredentials: true
         };
         axios.request({
             url,

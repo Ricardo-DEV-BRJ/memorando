@@ -23,6 +23,15 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
+router.get('/documento/:folio', async (req, res) => {
+  try {
+    const data = await controller.documentoQr(req.params.folio);
+    res.status(data.status).json({ message: data.message, memos: data.data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/', verifyToken, async (req, res) => {
   try {
     req.body.creado_por = req.nombre + ' ' + req.apellido

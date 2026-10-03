@@ -11,6 +11,7 @@ import Login from '@/pages/Login.vue'
 import Usuarios from '@/pages/Usuarios.vue'
 import Memo from '@/pages/Memo.vue'
 import HistorialMemos from '@/pages/HistorialMemos.vue'
+import VerificacionMemos from '@/pages/VerificacionMemos.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,11 @@ const router = createRouter({
       meta: { title: 'Login', public: true }
     },
     {
+      path: '/verificacion/:folio',
+      component: VerificacionMemos,
+      meta: { title: 'Verificación de Memorando', requiresAuth: false, public: true }
+    },
+    {
       path: '/',
       component: Inicio,
       meta: { title: 'Inicio', requiresAuth: true }
@@ -28,7 +34,7 @@ const router = createRouter({
     {
       path: '/usuarios',
       component: Usuarios,
-      meta: { title: 'Usuarios', requiresAuth: true }
+      meta: { title: 'Usuarios', requiresAuth: true, adminUser: true }
     },
     {
       path: '/memo',
@@ -72,7 +78,7 @@ router.beforeEach((to) => {
     return '/login'
   }
   // Si tiene permiso 0 y quiere ir a usuarios → redirigir al inicio
-  if (permiso < 1 && to.path === "/usuarios") {
+  if (to.meta.adminUser && permiso != 1) {
     return '/'
   }
 })
