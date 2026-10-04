@@ -67,9 +67,21 @@ class memoController {
     });
   }
 
-  delete(id) {
+  recibir(id) {
     return new Promise((resolve, reject) => {
-      model.delete(id)
+      model.recibir(id)
+        .then((res) => {
+          resolve(res)
+        })
+        .catch((err) => {
+          reject(err)
+        })
+    });
+  }
+  
+  anular(id) {
+    return new Promise((resolve, reject) => {
+      model.anular(id)
         .then((res) => {
           resolve(res)
         })

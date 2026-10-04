@@ -9,8 +9,11 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue').EffectScope
+  const anulado: typeof import('./utils/imagenes.js').anulado
   const api: typeof import('./utils/api.js').api
   const apiCall: typeof import('./utils/api.js').apiCall
+  const capitalize: typeof import('vue').capitalize
+  const coloresEstados: typeof import('./composables/useFunciones.js').coloresEstados
   const compressAndResizeImage: typeof import('./utils/imagen.js').compressAndResizeImage
   const comprimirImagen: typeof import('./utils/imagen.js').comprimirImagen
   const computed: typeof import('vue').computed
@@ -20,6 +23,7 @@ declare global {
   const defineComponent: typeof import('vue').defineComponent
   const effectScope: typeof import('vue').effectScope
   const final: typeof import('./utils/imagenes.js').final
+  const formatFecha: typeof import('./composables/useFunciones.js').formatFecha
   const generarMemo: typeof import('./utils/imprimir.js').generarMemo
   const generarMemorando: typeof import('./utils/imprimir.js').generarMemorando
   const getCurrentInstance: typeof import('vue').getCurrentInstance
@@ -102,7 +106,9 @@ declare module 'vue' {
   interface GlobalComponents {}
   interface ComponentCustomProperties {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
+    readonly anulado: UnwrapRef<typeof import('./utils/imagenes.js')['anulado']>
     readonly apiCall: UnwrapRef<typeof import('./utils/api.js')['apiCall']>
+    readonly coloresEstados: UnwrapRef<typeof import('./composables/useFunciones.js')['coloresEstados']>
     readonly compressAndResizeImage: UnwrapRef<typeof import('./utils/imagen.js')['compressAndResizeImage']>
     readonly comprimirImagen: UnwrapRef<typeof import('./utils/imagen.js')['comprimirImagen']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
@@ -112,6 +118,7 @@ declare module 'vue' {
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
     readonly final: UnwrapRef<typeof import('./utils/imagenes.js')['final']>
+    readonly formatFecha: UnwrapRef<typeof import('./composables/useFunciones.js')['formatFecha']>
     readonly generarMemo: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemo']>
     readonly generarMemorando: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemorando']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>

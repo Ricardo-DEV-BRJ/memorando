@@ -2,18 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from '@/composables/useToast'
-import { generarMemo } from '@/utils/imprimir'
+import { formatFecha, coloresEstados } from '@/composables/useFunciones'
+import Detalles from '@/components/Modals/Detalles.vue'
 
 const router = useRouter()
 
-const headersEquipos = [
-  { key: 'nombre', title: 'Nombre' },
-  { key: 'serial', title: 'Serial' },
-  { key: 'estado', title: 'Estado' },
-]
 // Lista de Memorandos
 const memorandos = ref([])
-const tokenQr = ref('')
 const cargando = ref(false)
 const busqueda = ref('')
 const copiarCargando = ref(false)
@@ -25,22 +20,8 @@ const headers = [
   { key: 'total_equipos', title: 'Equipos', sortable: true },
   { key: 'acciones', title: 'Opciones', sortable: true },
 ]
-
-// Modal de Detalles
-const diagDetalle = ref(false)
-const memoSeleccionado = ref(null)
-const cargandoDetalle = ref(false)
 const memoCopiar = ref([])
-
-function formatFecha(fecha) {
-  if (!fecha) return '-'
-  const str = String(fecha).substring(0, 10)
-  const partes = str.split('-')
-  if (partes.length === 3) {
-    return `${partes[2]}/${partes[1]}/${partes[0]}`
-  }
-  return str
-}
+const detalle = ref(null)
 
 function cargarMemorandos() {
   cargando.value = true
@@ -54,24 +35,6 @@ function cargarMemorandos() {
     })
     .finally(() => {
       cargando.value = false
-    })
-}
-
-function verDetalle(item) {
-  memoSeleccionado.value = null
-  cargandoDetalle.value = true
-  diagDetalle.value = true
-  apiCall(`memorandos/${item.id}`)
-    .then((res) => {
-      memoSeleccionado.value = res.data.memos
-      tokenQr.value = res.data.tokenMemo
-    })
-    .catch((err) => {
-      console.error(err)
-      toast.error('Error al cargar los detalles del memorando')
-    })
-    .finally(() => {
-      cargandoDetalle.value = false
     })
 }
 
@@ -92,39 +55,13 @@ async function copiarMemo(item) {
   router.push('/memo')
 }
 
-function obtenerDatosMemo(datos) {
-  const datosMemo = {
-    equipos: datos.equipos.map(item => ({
-      nombre: item.nombre,
-      descripcion: item.descripcion,
-      serial: item.serial
-    })),
-    asunto: datos.asunto,
-    descripcion: datos.descripcion,
-    fecha: formatFecha(datos.fecha),
-    de: 'Centro Aldea Tecnológica / Sede Estovacuy',
-    motivo: datos.descripcion,
-    firma: datos.firma,
-    para: datos.pa_quien,
-    ubicacion: `que se desarrollara en ${datos.nom_dir} ${datos.direccion}`,
-    firmante: datos.nombre + ' ' + datos.apellido,
-    folio_me: datos.folio_me,
-    urlMemo: `${window.location.origin}/verificacion/${datos.folio_me}`
-  }
-  generarMemo(datosMemo)
-}
-
-function codificarToken() {
-  console.log('nada')
-}
-
 onMounted(() => {
   cargarMemorandos()
 })
 </script>
 
 <template>
-  <v-container>
+  <v-container >
     <!-- Encabezado -->
     <v-row align="center" class="mb-4">
       <v-col>
@@ -172,6 +109,9 @@ onMounted(() => {
               <v-icon icon="mdi-calendar-range" size="small" color="primary" />
               <span class="font-weight-medium">{{ formatFecha(item.fecha) }}</span>
             </div>
+            <v-chip :color="coloresEstados(item.estado)" variant="tonal" size="small" prepend-icon="mdi-list-status" class="text-capitalize">
+              {{ item.estado ? item.estado : 'Sin estado' }}
+            </v-chip>
           </template>
 
           <!-- 2. Ubicación -->
@@ -202,12 +142,14 @@ onMounted(() => {
 
           <!-- Asunto -->
           <template v-slot:item.asunto="{ item }">
-            <span class="text-truncate d-inline-block" style="max-width: 220px;" :title="item.asunto">
-              {{ item.folio_me }}
-            </span>
-            <span class="text-truncate d-inline-block" style="max-width: 220px;" :title="item.asunto">
-              {{ item.asunto }}
-            </span>
+            <div class="d-flex flex-column">
+              <span class="text-truncate d-inline-block" :title="item.folio_me">
+                {{ item.folio_me }}
+              </span>
+              <span class="text-truncate d-inline-block" :title="item.asunto">
+                {{ item.asunto }}
+              </span>
+            </div>
           </template>
 
           <!-- Total de Equipos -->
@@ -220,96 +162,13 @@ onMounted(() => {
           <!-- Opciones / Ver detalle -->
           <template v-slot:item.acciones="{ item }">
             <v-btn icon="mdi-eye-outline" variant="tonal" size="small" color="primary" title="Ver detalle del memorando"
-              @click="verDetalle(item)" />
+              @click="detalle.verDetalle(item)" />
             <v-btn icon="mdi-content-copy" variant="tonal" size="small" color="primary" title="Copiar memorando"
               @click="copiarMemo(item)" :loading="copiarCargando" />
           </template>
         </v-data-table>
       </v-card-text>
     </v-card>
-
-    <!-- Modal de Detalles del Memorando -->
-    <v-dialog v-model="diagDetalle" max-width="700px">
-      <v-card rounded="lg" v-if="memoSeleccionado">
-        <v-card-title class="d-flex align-center justify-space-between pt-4 px-4">
-          <div class="d-flex align-center ga-2">
-            <v-avatar color="primary" variant="tonal" size="36">
-              <v-icon icon="mdi-file-document-outline" size="20" />
-            </v-avatar>
-            <span class="text-h6 font-weight-bold">Memorando #{{ memoSeleccionado.id }}</span>
-          </div>
-          <v-btn icon="mdi-close" variant="text" size="small" @click="diagDetalle = false" />
-        </v-card-title>
-
-        <v-card-text class="px-4 py-2">
-          <v-row class="mb-2">
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis">Fecha</div>
-              <div class="font-weight-medium">{{ formatFecha(memoSeleccionado.fecha) }}</div>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis">Creado por</div>
-              <div class="font-weight-medium">{{ memoSeleccionado.creado_por || 'Sistema' }}</div>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis">Responsable</div>
-              <div class="font-weight-medium">{{ memoSeleccionado.nombre + ' ' + memoSeleccionado.apellido }} (V-{{
-                memoSeleccionado.cedula
-              }})</div>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <div class="text-caption text-medium-emphasis">Ubicación</div>
-              <div class="font-weight-medium">{{ memoSeleccionado.nom_dir }} - {{ memoSeleccionado.direccion
-              }}
-              </div>
-            </v-col>
-            <v-col cols="12">
-              <div class="text-caption text-medium-emphasis">Asunto</div>
-              <div class="font-weight-bold text-body-1">{{ memoSeleccionado.asunto }}</div>
-            </v-col>
-            <v-col cols="12">
-              <div class="text-caption text-medium-emphasis">Descripción</div>
-              <p class="text-body-2 bg-grey-lighten-4 pa-3 rounded-lg border mt-1 mb-0" style="white-space: pre-wrap;">
-                {{ memoSeleccionado.descripcion }}
-              </p>
-            </v-col>
-          </v-row>
-
-          <v-divider class="my-3" />
-
-          <!-- Equipos incluidos -->
-          <div class="text-subtitle-2 font-weight-bold mb-2 d-flex align-center ga-2">
-            <v-icon icon="mdi-devices" size="small" color="primary" />
-            Equipos incluidos ({{ memoSeleccionado.equipos?.length || 0 }})
-          </div>
-
-          <div class="border-thin rounded-lg">
-            <v-data-table :headers="headersEquipos" density="compact" :items="memoSeleccionado.equipos"
-              :loading="cargandoDetalle" no-data-text="No hay equipos registrados" loading-text="Cargando equipos..."
-              items-per-page-text="Equipos por página" :mobile="$vuetify.display.smAndDown">
-              <template v-slot:item.estado="{ item }">
-                <v-chip size="x-small" :color="item.estado === 'Disponible' ? 'green' : 'red'">
-                  {{ item.estado }}
-                </v-chip>
-              </template>
-            </v-data-table>
-          </div>
-        </v-card-text>
-
-        <v-card-actions class="px-4 pb-4 justify-end">
-          <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" @click="codificarToken()">
-            Token
-          </v-btn>
-          <v-btn color="primary" variant="tonal" prepend-icon="mdi-printer" @click="obtenerDatosMemo(memoSeleccionado)">
-            Generar memorando
-          </v-btn>
-          <v-btn color="primary" variant="tonal" @click="diagDetalle = false">Cerrar</v-btn>
-        </v-card-actions>
-      </v-card>
-      <v-card rounded="lg" v-else-if="cargandoDetalle" class="pa-6 text-center">
-        <v-progress-circular indeterminate color="primary" />
-        <div class="text-caption text-medium-emphasis mt-2">Cargando detalles...</div>
-      </v-card>
-    </v-dialog>
   </v-container>
+  <Detalles ref="detalle" @actualizado="cargarMemorandos" />
 </template>

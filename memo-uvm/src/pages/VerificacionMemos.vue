@@ -11,6 +11,7 @@ const folio = computed(() => route.params.folio || '')
 // Estados de la vista
 const cargando = ref(true)
 const mostrarCheck = ref(false)
+const mostrarError = ref(false)
 const documento = ref(null)
 const error = ref(null)
 const imprimiendo = ref(false)
@@ -37,6 +38,7 @@ function formatFecha(fecha) {
 async function consultarDocumento() {
   if (!folio.value) {
     error.value = 'No se ha proporcionado un folio de verificación válido.'
+    toast.error(error.value)
     cargando.value = false
     return
   }
@@ -45,29 +47,21 @@ async function consultarDocumento() {
   mostrarCheck.value = false
   error.value = null
 
-  try {
-    await apiCall(`memorandos/documento/${folio.value}`)
-      .then((res) => {
-        console.log(res.data.memos)
-        documento.value = res.data.memos
-      })
-      .catch((error) => {
-        console.error('Error al obtener el documento:', error)
-        cargando.value = false
-        error.value = error.response?.data?.message || 'No se pudo verificar el documento o el folio no existe en el sistema.'
-      })
-    
-    // documento.value = res.data?.memo
-    cargando.value = false
-    mostrarCheck.value = true
-
-    setTimeout(() => {
-      mostrarCheck.value = false
-    }, 1800)
-
-  } catch (err) {
-
-  }
+  await apiCall(`memorandos/documento/${folio.value}`)
+    .then((res) => {
+      documento.value = res.data.memos
+      mostrarCheck.value = true
+      setTimeout(() => {
+        mostrarCheck.value = false
+      }, 1800)
+    })
+    .catch((error) => {
+      console.error('Error al obtener el documento:', error)
+      cargando.value = false
+      error.value = error.response?.data?.message || 'No se pudo verificar el documento o el folio no existe en el sistema.'
+      mostrarError.value = true
+    })
+  cargando.value = false
 }
 
 // Función para imprimir / generar el PDF utilizando la utilidad del proyecto
@@ -150,6 +144,26 @@ onMounted(() => {
           </div>
         </v-overlay>
 
+        <!-- 2. ANIMACIÓN DE ERROR EN EL MEDIO (TEMPORAL) -->
+        <v-overlay :model-value="mostrarError" class="align-center justify-center text-center"
+          scrim="rgba(0, 0, 0, 0.65)" persistent>
+          <div class="check-success-container">
+            <div class="check-circle-wrapper mb-4">
+              <v-icon icon="mdi-file-document-alert" color="error" size="110" class="error-icon-animated" />
+            </div>
+            <h2 class="text-h4 font-weight-bold text-white mb-2">
+              Verificación Fallida
+            </h2>
+            <p class="text-h6 text-green-lighten-4 mb-2">
+              El documento no existe o no fue emitido por el sistema
+            </p>
+            <v-chip color="error" variant="flat" size="large" class="mt-2 font-weight-bold">
+              <v-icon start icon="mdi-check-decagram" />
+              Folio: {{ folio }}
+            </v-chip>
+          </div>
+        </v-overlay>
+
         <!-- 3. INFORMACIÓN DEL DOCUMENTO UNA VEZ VERIFICADO -->
         <v-slide-y-transition>
           <v-card v-if="documento && !cargando && !mostrarCheck" rounded="xl" elevation="4" class="overflow-hidden">
@@ -169,9 +183,9 @@ onMounted(() => {
                 </div>
               </div>
 
-              <v-chip color="success" variant="flat" size="default" class="font-weight-bold">
+              <v-chip :color="coloresEstados(documento.estado)" variant="flat" size="default" class="font-weight-bold text-capitalize">
                 <v-icon start icon="mdi-check-bold" />
-                Válido / Aprobado
+                {{ documento.estado ? documento.estado : 'Sin estado' }}
               </v-chip>
             </div>
 
@@ -347,6 +361,10 @@ onMounted(() => {
 
 .check-icon-animated {
   filter: drop-shadow(0px 8px 24px rgba(76, 175, 80, 0.45));
+}
+
+.error-icon-animated {
+  filter: drop-shadow(0px 8px 24px rgba(175, 76, 76, 0.45));
 }
 
 @keyframes bounceIn {

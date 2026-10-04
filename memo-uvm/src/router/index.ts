@@ -24,7 +24,7 @@ const router = createRouter({
     {
       path: '/verificacion/:folio',
       component: VerificacionMemos,
-      meta: { title: 'Verificación de Memorando', requiresAuth: false, public: true }
+      meta: { title: 'Verificación de Memorando', requiresAuth: false}
     },
     {
       path: '/',

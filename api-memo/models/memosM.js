@@ -3,7 +3,7 @@ import db from '../database/db.js';
 class memoModel {
   all() {
     return new Promise(async (resolve, reject) => {
-      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, (SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id;'
+      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, (SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos, estado FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id;'
       try {
         const [rows] = await db.query(sql)
         if (rows.length > 0) {
@@ -19,7 +19,7 @@ class memoModel {
 
   getOne(id) {
     return new Promise(async (resolve, reject) => {
-      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id WHERE m.id = ?'
+      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos, estado FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id WHERE m.id = ?'
       const sql2 = 'SELECT e.id, e.nombre, e.serial, e.descripcion, e.estado FROM equipo e INNER JOIN equipo_memo em ON e.id = em.id_equipo WHERE em.id_memo = ?'
       const valores = [id]
       try {
@@ -38,11 +38,14 @@ class memoModel {
 
   documentoQr(folio) {
     return new Promise(async (resolve, reject) => {
-      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id WHERE m.folio_me = ?'
+      const sql = 'SELECT m.id, m.id_responsable, m.id_ubicacion, r.nombre, r.apellido, r.cedula, r.firma, u.nombre AS nom_dir, u.direccion, m.asunto, m.fecha, m.descripcion, m.pa_quien, m.creado_por, folio_me, ( SELECT COUNT(*) FROM equipo_memo me WHERE me.id_memo = m.id ) AS total_equipos, m.estado FROM memorando m INNER JOIN ubicacion u ON m.id_ubicacion = u.id INNER JOIN responsable r ON m.id_responsable = r.id WHERE m.folio_me = ?'
       const sql2 = 'SELECT e.id, e.nombre, e.serial, e.descripcion, e.estado FROM equipo e INNER JOIN equipo_memo em ON e.id = em.id_equipo WHERE em.id_memo = ?'
       const valores = [folio]
       try {
         const [rows] = await db.query(sql, valores)
+        if (rows.length === 0) {
+          reject({status:404, data:[], message:'Documento no existe o No fue generado por el sistema.'})
+        }
         const [rows2] = await db.query(sql2, rows[0].id)
         if (rows.length > 0) {
           resolve({ status: 200, data: { ...rows[0], equipos: rows2 }, message: 'Consulta con exito' })
@@ -109,13 +112,26 @@ class memoModel {
     });
   }
 
-  delete(id) {
+  recibir(id) {
     return new Promise(async (resolve, reject) => {
-      const sql = 'UPDATE ubicacion SET eliminado = 0 WHERE id = ?'
-      const valores = [id]
+      const sql = 'UPDATE memorando SET estado = ? WHERE id = ?'
+      const valores = ["recibido", id]
       try {
         const result = await db.query(sql, valores)
-        resolve({ status: 200, data: [], message: 'Inactivado con exito' })
+        resolve({ status: 200, data: [], message: 'Memorando recibido con exito' })
+      } catch (error) {
+        reject(error)
+      }
+    });
+  }
+  
+  anular(id) {
+    return new Promise(async (resolve, reject) => {
+      const sql = 'UPDATE memorando SET estado = ? WHERE id = ?'
+      const valores = ["anulado", id]
+      try {
+        const result = await db.query(sql, valores)
+        resolve({ status: 200, data: [], message: 'Memorando anulado con exito' })
       } catch (error) {
         reject(error)
       }
