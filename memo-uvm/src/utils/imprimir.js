@@ -4,7 +4,7 @@ import pdfFonts from 'pdfmake/build/vfs_fonts';
 pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfMake.vfs;
 
 // Rutas de tus assets de imagen
-import { menbrete, lateral, final } from './imagenes.js'
+import { menbrete, lateral, final, anulado } from './imagenes.js'
 let cantidadEquiposPorHoja = 6;
 // Datos dinámicos recibidos de la BD o formulario en Vue
 let memoData = {
@@ -23,8 +23,14 @@ let memoData = {
   ],
   firmante: 'José Reyes', //[cite: 1]
   ubicacion: 'Que se dearrollara en Estovacuy', //[cite: 1]
-  urlMemo: 'hola'
+  urlMemo: 'hola',
+  estado: '',
 };
+
+/* 
+  La hoja mide 600 de ancho y 770 de largo
+  Centro x:300 y:385
+*/
 
 // Convierte cualquier formato de imagen (WebP, JPEG, raw base64, etc.) a PNG Data URL compatible con pdfmake
 const convertirADataUrlPng = (imagenSrc) => {
@@ -118,6 +124,7 @@ export const generarMemorando = async () => {
   const b64Lateral = lateral;
   const b64Membrete = menbrete;
   const b64Footer = final;
+  const b64Anulado = await convertirADataUrlPng(anulado);
 
   const firmaPng = await convertirADataUrlPng(memoData.firma);
 
@@ -189,7 +196,8 @@ export const generarMemorando = async () => {
           ],
           absolutePosition: { x: 450, y: 127 },
           width: 70, height: 70
-        }
+        },
+        (memoData.estado?.toLowerCase() === 'anulado' ? [{ image: b64Anulado, width:250, height:250, absolutePosition: { x: 200, y:200   } }] : [])
       ]
     },
     header: function () {

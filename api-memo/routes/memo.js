@@ -51,9 +51,18 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
-router.delete('/:id', verifyToken, async (req, res) => {
+router.put('/recibir/:id', verifyToken, async (req, res) => {
   try {
-    const data = await controller.delete(req.params.id);
+    const data = await controller.recibir(req.params.id);
+    res.status(data.status).json({ message: data.message, memos: data.data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/anular/:id', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.anular(req.params.id);
     res.status(data.status).json({ message: data.message, memos: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
