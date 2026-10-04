@@ -84,7 +84,7 @@ async function imprimirDocumento() {
       firmante: doc.firmante || (doc.nombre ? `${doc.nombre} ${doc.apellido || ''}` : 'Responsable'),
       firma: doc.firma || '',
       urlMemo: `${window.location.origin}/verificacion/${doc.folio_me || doc.folio || folio.value}`,
-      estado: doc.estado ? doc.estado : ''
+      estado: doc.estado ? doc.estado : '',
       equipos: Array.isArray(doc.equipos)
         ? doc.equipos.map(item => ({
           nombre: item.nombre || item,
