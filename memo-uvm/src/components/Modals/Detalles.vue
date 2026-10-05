@@ -3,6 +3,7 @@ import { generarMemo } from '@/utils/imprimir'
 import { formatFecha, coloresEstados } from '@/composables/useFunciones'
 import EstadoMemo from '@/components/Modals/EstadoMemo.vue'
 import { capitalize } from 'vue'
+import { generarMemoCorreo } from '@/utils/enviarMemo'
 
 const emit = defineEmits(['actualizado'])
 const estadoMemo = ref(null)
@@ -61,6 +62,29 @@ function verDetalle(item) {
     })
 }
 
+async function enviarMemoCorreo(item) {
+  const datosMemo = {
+    equipos: item.equipos.map(equipo => ({
+      nombre: equipo.nombre,
+      descripcion: equipo.descripcion,
+      serial: equipo.serial
+    })),
+    asunto: item.asunto,
+    descripcion: item.descripcion,
+    fecha: formatFecha(item.fecha),
+    de: 'Centro Aldea Tecnológica / Sede Estovacuy',
+    motivo: item.descripcion,
+    firma: item.firma,
+    para: item.pa_quien,
+    ubicacion: `que se desarrollara en ${item.nom_dir} ${item.direccion}`,
+    firmante: item.nombre + ' ' + item.apellido,
+    folio_me: item.folio_me,
+    urlMemo: `${window.location.origin}/verificacion/${item.folio_me}`,
+    estado: item.estado ? capitalize(item.estado) : ''
+  }
+  await generarMemoCorreo(datosMemo, item.id_responsable, `Memorando #${item.folio_me || 'sin_folio'}`)
+}
+
 function marcarRecepcion(item) {
   estadoMemo.value.abrir('recibir', item)
 }
@@ -107,12 +131,12 @@ defineExpose({
           <v-col cols="12" sm="6">
             <div class="text-caption text-medium-emphasis">Responsable</div>
             <div class="font-weight-medium">
-              {{ memoSeleccionado.nombre + ' ' + memoSeleccionado.apellido }} (V-{{memoSeleccionado.cedula }})
+              {{ memoSeleccionado.nombre + ' ' + memoSeleccionado.apellido }} (V-{{ memoSeleccionado.cedula }})
             </div>
           </v-col>
           <v-col cols="12" sm="6">
             <div class="text-caption text-medium-emphasis">Ubicación</div>
-            <div class="font-weight-medium">{{ memoSeleccionado.nom_dir }} - {{ memoSeleccionado.direccion}}
+            <div class="font-weight-medium">{{ memoSeleccionado.nom_dir }} - {{ memoSeleccionado.direccion }}
             </div>
           </v-col>
           <v-col cols="12" sm="6">
@@ -168,9 +192,13 @@ defineExpose({
           @click="marcarRecepcion(memoSeleccionado)" v-if="!memoSeleccionado.estado">
           Recibido
         </v-btn>
-        <v-btn color="primary" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal"
-          prepend-icon="mdi-printer" @click="obtenerDatosMemo(memoSeleccionado)">
+        <v-btn color="primary" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-printer"
+          @click="obtenerDatosMemo(memoSeleccionado)">
           Imprimir
+        </v-btn>
+        <v-btn color="primary" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-printer"
+          @click="enviarMemoCorreo(memoSeleccionado)">
+          Enviar por correo
         </v-btn>
       </v-card-actions>
     </v-card>

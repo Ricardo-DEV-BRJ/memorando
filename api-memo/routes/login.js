@@ -1,6 +1,6 @@
-import express from 'express';
-import loginController from '../controllers/loginC.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+const express = require('express');
+const loginController = require('../controllers/loginC.js');
+const { verifyToken } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new loginController();
@@ -52,7 +52,7 @@ router.put('/permisos/:id', verifyToken, async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/' // Es crucial que el path coincida con el de creación
+        path: '/'
       });
       res.status(data.status).json({ message: 'Permisos asignados con éxito, recargue la página'});
     } else {
@@ -84,12 +84,11 @@ router.delete('/:id', verifyToken, async (req, res) => {
 });
 
 router.post('/logout', (req, res) => {
-  // El nombre de la cookie debe ser exactamente el mismo que usaste al crearla
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/' // Es crucial que el path coincida con el de creación
+    path: '/'
   });
 
   return res.status(200).json({
@@ -97,4 +96,4 @@ router.post('/logout', (req, res) => {
   });
 });
 
-export default router;
+module.exports = router;

@@ -1,6 +1,6 @@
-import express from 'express';
-import responsablesController from '../controllers/responsablesC.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+const express = require('express');
+const responsablesController = require('../controllers/responsablesC.js');
+const { verifyToken } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new responsablesController();
@@ -59,4 +59,4 @@ router.put('/:id/activar', verifyToken, async (req, res) => {
     }
 });
 
-export default router;
+module.exports = router;

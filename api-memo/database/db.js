@@ -1,5 +1,5 @@
-import dotenv from "dotenv";
-import mysql from "mysql2/promise";
+const dotenv = require('dotenv');
+const mysql = require('mysql2/promise');
 
 dotenv.config();
 
@@ -23,4 +23,4 @@ pool.getConnection()
         console.error('Error al conectar a la base de datos:', err);
     });
 
-export default pool;
+module.exports = pool;

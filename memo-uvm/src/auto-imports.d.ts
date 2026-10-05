@@ -22,9 +22,11 @@ declare global {
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
   const effectScope: typeof import('vue').effectScope
+  const enviarCorreo: typeof import('./utils/enviarMemo.js').enviarCorreo
   const final: typeof import('./utils/imagenes.js').final
   const formatFecha: typeof import('./composables/useFunciones.js').formatFecha
   const generarMemo: typeof import('./utils/imprimir.js').generarMemo
+  const generarMemoCorreo: typeof import('./utils/enviarMemo.js').generarMemoCorreo
   const generarMemorando: typeof import('./utils/imprimir.js').generarMemorando
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
@@ -117,9 +119,11 @@ declare module 'vue' {
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
+    readonly enviarCorreo: UnwrapRef<typeof import('./utils/enviarMemo.js')['enviarCorreo']>
     readonly final: UnwrapRef<typeof import('./utils/imagenes.js')['final']>
     readonly formatFecha: UnwrapRef<typeof import('./composables/useFunciones.js')['formatFecha']>
     readonly generarMemo: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemo']>
+    readonly generarMemoCorreo: UnwrapRef<typeof import('./utils/enviarMemo.js')['generarMemoCorreo']>
     readonly generarMemorando: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemorando']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>

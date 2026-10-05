@@ -1,6 +1,6 @@
-import express from 'express';
-import equiposController from '../controllers/equiposC.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+const express = require('express');
+const equiposController = require('../controllers/equiposC.js');
+const { verifyToken } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new equiposController();
@@ -59,4 +59,4 @@ router.put('/:id/changeStatus', verifyToken, async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

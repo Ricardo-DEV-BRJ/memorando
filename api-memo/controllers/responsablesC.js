@@ -1,4 +1,4 @@
-import responsablesModel from '../models/responsablesM.js';
+const responsablesModel = require('../models/responsablesM.js');
 
 const model = new responsablesModel();
 
@@ -7,11 +7,11 @@ class responsablesController {
     return new Promise((resolve, reject) => {
       model.all()
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -19,11 +19,11 @@ class responsablesController {
     return new Promise((resolve, reject) => {
       model.getOne(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -31,11 +31,11 @@ class responsablesController {
     return new Promise((resolve, reject) => {
       model.create(data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -43,11 +43,11 @@ class responsablesController {
     return new Promise((resolve, reject) => {
       model.update(id, data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -55,11 +55,11 @@ class responsablesController {
     return new Promise((resolve, reject) => {
       model.delete(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -67,13 +67,13 @@ class responsablesController {
     return new Promise((resolve, reject) => {
       model.activar(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 }
 
-export default responsablesController;
+module.exports = responsablesController;

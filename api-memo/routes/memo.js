@@ -1,6 +1,6 @@
-import express from 'express';
-import memoController from '../controllers/memoC.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+const express = require('express');
+const memoController = require('../controllers/memoC.js');
+const { verifyToken } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new memoController();
@@ -34,7 +34,7 @@ router.get('/documento/:folio', async (req, res) => {
 
 router.post('/', verifyToken, async (req, res) => {
   try {
-    req.body.creado_por = req.nombre + ' ' + req.apellido
+    req.body.creado_por = req.nombre + ' ' + req.apellido;
     const data = await controller.create(req.body);
     res.status(201).json(data);
   } catch (error) {
@@ -69,4 +69,4 @@ router.put('/anular/:id', verifyToken, async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
