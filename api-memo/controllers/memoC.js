@@ -2,9 +2,9 @@ const memoModel = require('../models/memosM.js');
 const model = new memoModel();
 
 class memoController {
-  all() {
+  all(id_dep) {
     return new Promise((resolve, reject) => {
-      model.all()
+      model.all(id_dep)
         .then((res) => {
           resolve(res);
         })

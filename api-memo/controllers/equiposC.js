@@ -2,9 +2,9 @@ const equiposModel = require('../models/equiposM.js');
 const model = new equiposModel();
 
 class equiposcontroller {
-  all() {
+  all(id_dep) {
     return new Promise((resolve, reject) => {
-      model.all()
+      model.all(id_dep)
         .then((res) => {
           resolve(res);
         })

@@ -1,6 +1,14 @@
 <script setup>
 import { imagenABase64Optimizado } from '@/utils/imagen.js'
-import {reglas} from '@/utils/rules.js'
+import { reglas } from '@/utils/rules.js'
+
+const props = defineProps({
+  departamentos: {
+    type: Array,
+    default: []
+  }
+})
+
 const diag = ref(false)
 const datos = ref({
   nombre: '',
@@ -124,16 +132,26 @@ defineExpose({
         <v-form v-model="validado" lazy-validation>
           <v-row align="center">
             <v-col cols="12" sm="6" class="py-0">
-              <v-text-field label="Nombre" prepend-inner-icon="mdi-account" density="compact"
-                v-model="datos.nombre" :rules="[reglas.required]"></v-text-field>
+              <v-text-field label="Nombre" prepend-inner-icon="mdi-account" density="compact" v-model="datos.nombre"
+                :rules="[reglas.required]"></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" class="py-0">
-              <v-text-field label="Apellido" prepend-inner-icon="mdi-account" density="compact"
-                v-model="datos.apellido" :rules="[reglas.required]"></v-text-field>
+              <v-text-field label="Apellido" prepend-inner-icon="mdi-account" density="compact" v-model="datos.apellido"
+                :rules="[reglas.required]"></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" class="py-0">
               <v-text-field label="Cedula" prepend-inner-icon="mdi-card-account-details" density="compact"
                 v-model="datos.cedula" :rules="[reglas.positive, reglas.required]" type="number" min='0'></v-text-field>
+            </v-col>
+            <v-col cols="12" class="py-0">
+              <v-autocomplete v-model="datos.id_dep" label="Departamento" type="text" density="compact"
+              prepend-inner-icon="mdi-account" :items="departamentos" item-title="nombre_dep"
+                item-value="id_dep" :rules="[reglas.required]" />
+            </v-col>
+            <v-col cols="12" class="py-0">
+              <v-text-field label="Correo Institucional" prepend-inner-icon="mdi-card-account-details" density="compact"
+                v-model="datos.email_resp" :rules="[reglas.email, reglas.required]" type="mail"
+                min='0'></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0">
               <v-file-input label="Firma" density="compact" @update:model-value="obtenerFirma"></v-file-input>
@@ -153,8 +171,10 @@ defineExpose({
       </v-card-text>
       <v-card-actions class="justify-end">
         <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" @click="cancelar">Cancelar</v-btn>
-        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar" :disabled="!validado" v-if="!editando">Agregar</v-btn>
-        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="actualizar" :disabled="!validado" v-else>Actualizar</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar"
+          :disabled="!validado" v-if="!editando">Agregar</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="actualizar"
+          :disabled="!validado" v-else>Actualizar</v-btn>
       </v-card-actions>
     </v-card>
 

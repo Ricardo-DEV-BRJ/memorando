@@ -10,6 +10,7 @@ const intentoEnvio = ref(false)
 const cargando = ref(false)
 const equipos = ref([])
 const resp = ref([])
+const depa = ref([])
 const ubica = ref([])
 const buscar = ref('')
 const headers = [
@@ -24,20 +25,20 @@ const equiposSeleccionados = ref([])
 const textoBase = 'Sirva la presente para dar salida de los siguientes equipos por parte del departamento de Aldea tecnológica. Los equipos van a ser resguardados por el departamento, para la actividad a realizarse el día'
 
 const datos = ref({
-  respSeleccionado: '',
+  respSeleccionado: null,
   fecha: '',
   ubicacion: null,
-  pa_quien: 'Centro Aldea Tecnológica / Sede Estovacuy',
+  pa_quien: null,
   asunto: 'Salida - Entrada de equipos',
   descripcion: textoBase,
 })
 
 function restablecer() {
   datos.value = {
-    respSeleccionado: '',
+    respSeleccionado: null,
     fecha: '',
     ubicacion: null,
-    pa_quien: 'Centro Aldea Tecnológica / Sede Estovacuy',
+    pa_quien: null,
     asunto: 'Salida - Entrada de equipos',
     descripcion: textoBase,
   }
@@ -59,6 +60,7 @@ function cargarResponsables() {
   apiCall('responsables')
     .then((res) => {
       resp.value = res.data.users
+      depa.value = res.data.depa
       resp.value = resp.value.filter((item) => item.eliminado === 1)
     })
 }
@@ -106,10 +108,11 @@ async function generarMemorando() {
     respSeleccionado: datos.value.respSeleccionado,
     fecha: datos.value.fecha,
     ubicacion: datos.value.ubicacion,
-    pa_quien: datos.value.pa_quien ? datos.value.pa_quien : 'Centro Aldea Tecnológica / Sede Estovacuy',
+    pa_quien: datos.value.pa_quien,
     asunto: datos.value.asunto,
     descripcion: datos.value.descripcion,
     equiposSeleccionados: equiposSeleccionados.value,
+    direccionUrl: `${window.location.origin}/verificacion/`
   }
   cargando.value = true
   apiCall('memorandos', memorando, 'POST')
@@ -138,7 +141,7 @@ function obtenerDatos() {
       descripcion: dataMemo.descripcion,
     }
     equiposSeleccionados.value = dataMemo.equipos.map(item => item.id),
-    console.log(datos.value)
+      console.log(datos.value)
   }
 }
 
@@ -225,15 +228,15 @@ onMounted(() => {
                 :item-props="listaUbicaciones" label="Ubicación" density="compact" variant="outlined"
                 prepend-inner-icon="mdi-map-marker" :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field v-model="datos.pa_quien" label="Para quien" type="text" density="compact" variant="outlined"
-                prepend-inner-icon="mdi-account" :rules="[reglas.required]" />
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="datos.pa_quien" label="Para quien" type="text" density="compact"
+                variant="outlined" prepend-inner-icon="mdi-account" :items="depa" item-title="nombre_dep" item-value="id_dep" :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field v-model="datos.asunto" label="Asunto" type="text" density="compact" variant="outlined"
                 prepend-inner-icon="mdi-text-box" :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12">
               <v-textarea v-model="datos.descripcion" label="Descripción" type="text" rows="3" no-resize
                 density="compact" variant="outlined" prepend-inner-icon="mdi-comment-text-outline"
                 :rules="[reglas.required]" />
@@ -253,5 +256,25 @@ onMounted(() => {
         </v-form>
       </v-card-text>
     </v-card>
+
+    <!-- Overlay de carga -->
+    <v-overlay
+      :model-value="cargando"
+      class="align-center justify-center"
+      persistent
+      scrim="black"
+    >
+      <v-card class="pa-8 d-flex flex-column align-center text-center rounded-xl" max-width="400" elevation="12">
+        <div class="position-relative d-flex align-center justify-center mb-5">
+          <v-progress-circular indeterminate color="primary" size="90" width="6"></v-progress-circular>
+          <v-icon icon="mdi-file-document-edit" color="primary" size="44" class="position-absolute" />
+        </div>
+        <h3 class="text-h6 font-weight-bold mb-2 text-primary">Generando Memorando</h3>
+        <p class="text-body-2 text-medium-emphasis">
+          Construyendo el documento PDF y enviando notificaciones por correo. Por favor, espere un momento...
+        </p>
+      </v-card>
+    </v-overlay>
+
   </v-container>
 </template>

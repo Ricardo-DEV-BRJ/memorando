@@ -7,7 +7,7 @@ const controller = new equiposController();
 
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const data = await controller.all();
+    const data = await controller.all(req.id_dep);
     res.status(data.status).json({ message: data.message, equ: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });

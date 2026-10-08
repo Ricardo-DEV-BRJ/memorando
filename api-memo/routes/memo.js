@@ -7,7 +7,7 @@ const controller = new memoController();
 
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const data = await controller.all();
+    const data = await controller.all(req.id_dep);
     res.status(data.status).json({ message: data.message, memos: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -35,6 +35,7 @@ router.get('/documento/:folio', async (req, res) => {
 router.post('/', verifyToken, async (req, res) => {
   try {
     req.body.creado_por = req.nombre + ' ' + req.apellido;
+    req.body.id_dep = req.id_dep
     const data = await controller.create(req.body);
     res.status(201).json(data);
   } catch (error) {

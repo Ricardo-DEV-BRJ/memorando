@@ -3,6 +3,7 @@ import PermisosForm from '@/components/Forms/PermisosForm.vue';
 
 // ── Estado ──────────────────────────────────────────────
 const usuarios = ref([])
+const departamentos = ref([])
 const cargando = ref(false)
 
 // Tabla
@@ -12,6 +13,7 @@ const busqueda = ref('')
 const headers = [
   { key: 'nombre', title: 'Nombre', sortable: true },
   { key: 'cedula', title: 'Cédula', sortable: false },
+  { key: 'email_resp', title: 'Correo', sortable: true },
   { key: 'last_login', title: 'Último acceso', sortable: true },
   { key: 'permisos', title: 'Permisos', sortable: false },
   { key: 'acciones', title: 'Opciones', sortable: false },
@@ -39,6 +41,10 @@ function cargaInicial() {
   apiCall('login/')
     .then((res) => {
       usuarios.value = res.data.users
+      departamentos.value = res.data.depa
+    })
+    .catch((err) => {
+      toast.error(err.response.data.error)
     })
 }
 
@@ -151,6 +157,32 @@ function guardarAccesoLogin() {
     });
 }
 
+function roles(id) {
+  switch (id) {
+    case 1:
+      return 'Admin'
+    case 2:
+      return 'Usuario'
+    case 0:
+      return 'Becado'
+    default:
+      break;
+  }
+}
+
+function coloresRoles(id) {
+  switch (id) {
+    case 1:
+      return 'warning'
+    case 2:
+      return 'primary'
+    case 0:
+      return 'error'
+    default:
+      break;
+  }
+}
+
 onMounted(() => cargaInicial())
 </script>
 
@@ -202,19 +234,26 @@ onMounted(() => cargaInicial())
             <span class="text-body-2">{{ formatFecha(item.last_login) }}</span>
           </template>
 
+          <!-- email -->
+          <template v-slot:item.email_resp="{ item }">
+            <span class="text-body-2">{{ item.email_resp || 'Sin correo' }}</span>
+          </template>
+
           <!-- Permisos -->
           <template v-slot:item.permisos="{ item }">
-            <v-chip :color="item.permisos === 1 ? 'warning' : 'primary'" variant="tonal" size="small"
-              :prepend-icon="item.permisos === 1 ? 'mdi-shield-crown' : 'mdi-account'" v-if="item.tiene_acceso == 1">
-              {{ item.permisos === 1 ? 'Admin' : 'Usuario' }}
-            </v-chip>
-            <v-chip color="error" variant="tonal" size="small" prepend-icon="mdi-account-cancel" v-else>
-              Sin acceso
-            </v-chip>
-            <v-chip :color="item.eliminado === 1 ? 'success' : 'error'" variant="tonal" size="small"
-              :prepend-icon="item.eliminado === 1 ? 'mdi-shield-crown' : 'mdi-account'">
-              {{ item.eliminado === 0 ? 'Eliminado' : 'Activo' }}
-            </v-chip>
+            <div class="d-flex flex-wrap ga-2 my-2">
+              <v-chip :color="coloresRoles(item.permisos)" variant="tonal" size="small"
+                :prepend-icon="item.permisos === 1 ? 'mdi-shield-crown' : 'mdi-account'" v-if="item.tiene_acceso == 1">
+                {{ roles(item.permisos) }}
+              </v-chip>
+              <v-chip color="error" variant="tonal" size="small" prepend-icon="mdi-account-cancel" v-else>
+                Sin acceso
+              </v-chip>
+              <v-chip :color="item.eliminado === 1 ? 'success' : 'error'" variant="tonal" size="small"
+                :prepend-icon="item.eliminado === 1 ? 'mdi-shield-crown' : 'mdi-account'">
+                {{ item.eliminado === 0 ? 'Eliminado' : 'Activo' }}
+              </v-chip>
+            </div>
           </template>
 
           <!-- Acciones -->
@@ -246,7 +285,7 @@ onMounted(() => cargaInicial())
                 </v-list-item>
                 <v-list-item>
                   <v-btn icon="mdi-account-convert" variant="tonal" size="small" color="secondary"
-                    title="Cambiar permisos" @click="permisosFormRef.abrir({id: item.id })">
+                    title="Cambiar permisos" @click="permisosFormRef.abrir({ id: item.id })">
                   </v-btn>
                 </v-list-item>
               </v-list>
@@ -257,7 +296,7 @@ onMounted(() => cargaInicial())
     </v-card>
   </v-container>
   <permisos-form ref="permisosFormRef" @guardado="cargaInicial" />
-  <responsables-form ref="responsablesFormRef" @guardado="cargaInicial" />
+  <responsables-form ref="responsablesFormRef" @guardado="cargaInicial" :departamentos="departamentos" />
   <confirm-dialog ref="confirmDialogRef" @confirmar="eliminarResponsable" />
   <!-- Modal Activar Responsable -->
   <v-dialog v-model="diagActivarUser" max-width="400px">

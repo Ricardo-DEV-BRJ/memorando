@@ -17,6 +17,7 @@ const verifyToken = (req, res, next) => {
         req.user_id = decoded.id;
         req.nombre = decoded.nombre;
         req.apellido = decoded.apellido;
+        req.id_dep = decoded.id_dep;
         next();
     } catch (error) {
         return res.status(403).json({

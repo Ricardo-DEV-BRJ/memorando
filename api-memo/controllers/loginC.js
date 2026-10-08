@@ -27,7 +27,8 @@ class logincontroller {
               cedula: responsable.cedula,
               nombre: responsable.nombre,
               apellido: responsable.apellido,
-              permisos: permisos
+              permisos: permisos,
+              id_dep: responsable.id_dep
             },
             secretKey,
             { expiresIn: '8h' }

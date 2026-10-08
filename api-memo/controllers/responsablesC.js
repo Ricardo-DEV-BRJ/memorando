@@ -3,9 +3,9 @@ const responsablesModel = require('../models/responsablesM.js');
 const model = new responsablesModel();
 
 class responsablesController {
-  all() {
+  all(id_dep, id_log) {
     return new Promise((resolve, reject) => {
-      model.all()
+      model.all(id_dep, id_log)
         .then((res) => {
           resolve(res);
         })
@@ -15,9 +15,9 @@ class responsablesController {
     });
   }
 
-  getOne(id) {
+  getOne(id, id_log) {
     return new Promise((resolve, reject) => {
-      model.getOne(id)
+      model.getOne(id, id_log)
         .then((res) => {
           resolve(res);
         })
@@ -27,9 +27,9 @@ class responsablesController {
     });
   }
 
-  create(data) {
+  create(data, id_log) {
     return new Promise((resolve, reject) => {
-      model.create(data)
+      model.create(data, id_log)
         .then((res) => {
           resolve(res);
         })
@@ -39,9 +39,9 @@ class responsablesController {
     });
   }
 
-  update(id, data) {
+  update(id, data, id_log) {
     return new Promise((resolve, reject) => {
-      model.update(id, data)
+      model.update(id, data, id_log)
         .then((res) => {
           resolve(res);
         })
@@ -51,9 +51,9 @@ class responsablesController {
     });
   }
 
-  delete(id) {
+  delete(id, id_log) {
     return new Promise((resolve, reject) => {
-      model.delete(id)
+      model.delete(id, id_log)
         .then((res) => {
           resolve(res);
         })
@@ -63,9 +63,9 @@ class responsablesController {
     });
   }
 
-  activar(id) {
+  activar(id, id_log) {
     return new Promise((resolve, reject) => {
-      model.activar(id)
+      model.activar(id, id_log)
         .then((res) => {
           resolve(res);
         })

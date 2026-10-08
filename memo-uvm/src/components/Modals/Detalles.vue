@@ -30,11 +30,11 @@ function obtenerDatosMemo(datos) {
     asunto: datos.asunto,
     descripcion: datos.descripcion,
     fecha: formatFecha(datos.fecha),
-    de: 'Centro Aldea Tecnológica / Sede Estovacuy',
+    de: datos.dep_emisor,
     motivo: datos.descripcion,
     firma: datos.firma,
     para: datos.pa_quien,
-    ubicacion: `que se desarrollara en ${datos.nom_dir} ${datos.direccion}`,
+    ubicacion: datos.direccion.trim() ? `que se desarrollara en ${datos.nom_dir} ${datos.direccion}` : '',
     firmante: datos.nombre + ' ' + datos.apellido,
     folio_me: datos.folio_me,
     urlMemo: `${window.location.origin}/verificacion/${datos.folio_me}`,
@@ -60,29 +60,6 @@ function verDetalle(item) {
     .finally(() => {
       cargandoDetalle.value = false
     })
-}
-
-async function enviarMemoCorreo(item) {
-  const datosMemo = {
-    equipos: item.equipos.map(equipo => ({
-      nombre: equipo.nombre,
-      descripcion: equipo.descripcion,
-      serial: equipo.serial
-    })),
-    asunto: item.asunto,
-    descripcion: item.descripcion,
-    fecha: formatFecha(item.fecha),
-    de: 'Centro Aldea Tecnológica / Sede Estovacuy',
-    motivo: item.descripcion,
-    firma: item.firma,
-    para: item.pa_quien,
-    ubicacion: `que se desarrollara en ${item.nom_dir} ${item.direccion}`,
-    firmante: item.nombre + ' ' + item.apellido,
-    folio_me: item.folio_me,
-    urlMemo: `${window.location.origin}/verificacion/${item.folio_me}`,
-    estado: item.estado ? capitalize(item.estado) : ''
-  }
-  await generarMemoCorreo(datosMemo, item.id_responsable, `Memorando #${item.folio_me || 'sin_folio'}`)
 }
 
 function marcarRecepcion(item) {
@@ -195,10 +172,6 @@ defineExpose({
         <v-btn color="primary" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-printer"
           @click="obtenerDatosMemo(memoSeleccionado)">
           Imprimir
-        </v-btn>
-        <v-btn color="primary" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-printer"
-          @click="enviarMemoCorreo(memoSeleccionado)">
-          Enviar por correo
         </v-btn>
       </v-card-actions>
     </v-card>

@@ -14,15 +14,21 @@ class loginmodel {
             u.apellido,
             u.cedula,
             u.firma,
+            u.email_resp,
             u.eliminado,
             l.permisos,
             l.last_login,
-            CASE WHEN l.id IS NOT NULL THEN 1 ELSE 0 END AS tiene_acceso
+            CASE WHEN l.id IS NOT NULL THEN 1 ELSE 0 END AS tiene_acceso,
+            d.nombre_dep AS departamento,
+            d.id_dep
           FROM responsable u
           LEFT JOIN login l ON l.cedula = u.cedula
+          INNER JOIN departamentos d ON d.id_dep = u.id_dep
         `;
+        const sql2 = `SELECT * FROM departamentos`
         const [rows] = await db.query(sql);
-        resolve({ status: 200, message: 'Usuarios obtenidos con éxito', data: rows });
+        const [depa] = await db.query(sql2);
+        resolve({ status: 200, message: 'Usuarios obtenidos con éxito', data: rows, depa: depa });
       } catch (error) {
         reject(error);
       }
@@ -53,8 +59,6 @@ class loginmodel {
         await this.permisos(data.user_id);
         const sqlAdmin = 'SELECT id_responsable FROM login WHERE per_super = ?';
         const [rowsAdmin] = await db.query(sqlAdmin, [1]);
-        console.log(rowsAdmin);
-        console.log(id);
         if (rowsAdmin.some(row => row.id_responsable == id)) {
           return reject({ message: 'La acción no puede ser realizada, el usuario es administrador', status: 403 });
         }
@@ -70,7 +74,7 @@ class loginmodel {
   async authenticate(data) {
     return new Promise(async (resolve, reject) => {
       const sqlLogin = 'SELECT clave, permisos FROM login WHERE cedula = ?';
-      const sqlUser = 'SELECT id, nombre, apellido, cedula, firma, eliminado FROM responsable WHERE cedula = ?';
+      const sqlUser = 'SELECT id, nombre, apellido, cedula, firma, id_dep, eliminado FROM responsable WHERE cedula = ?';
       try {
         const [rows] = await db.query(sqlLogin, [data.cedula]);
         if (rows.length === 0) {
@@ -106,7 +110,11 @@ class loginmodel {
           return resolve({ message: 'Contraseña actualizada con éxito', status: 201 });
         }
         const sql = 'INSERT INTO login (id_responsable, cedula, clave, permisos) VALUES (?, ?, ?, ?)';
-        const params = [data.id_responsable, data.cedula, hashedPass, data.permisos];
+        let per = 2
+        if (data.permisos) {
+          per = data.permisos
+        }
+        const params = [data.id_responsable, data.cedula, hashedPass, per];
         const [rows] = await db.query(sql, params);
         resolve({ status: 201, message: 'Acceso creado con éxito', data: rows });
       } catch (error) {
@@ -141,6 +149,19 @@ class loginmodel {
       }
     });
   }
+
+  departamentos() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const sql = 'SELECT * FROM departamentos';
+        const [rows] = await db.query(sql);
+        resolve({ status: 200, message: 'Departamentos obtenidos con éxito', data: rows });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
 }
 
 module.exports = loginmodel;

@@ -8,7 +8,7 @@ const controller = new loginController();
 router.get('/', verifyToken, async (req, res) => {
   try {
     const data = await controller.all(req.user_id);
-    res.status(data.status).json({ message: data.message, users: data.data });
+    res.status(data.status).json({ message: data.message, users: data.data, depa: data.depa });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
