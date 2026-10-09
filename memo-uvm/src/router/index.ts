@@ -54,21 +54,9 @@ function getToken(): string | null {
   return cookie ? cookie.split('=')[1] : null
 }
 
-function getPermiso(): number {
-  if (document.cookie) {
-    const permisoCookie = document.cookie
-      .split(';')
-      .find(row => row.trim().startsWith('permiso='));
-    if (permisoCookie) {
-      return parseInt(permisoCookie.trim().split('permiso=')[1]) || 0;
-    }
-  }
-  return 0
-}
-
 router.beforeEach((to) => {
   const token = getToken()
-  const permiso = getPermiso()
+  const permiso = decodeToken()?.permisos
   // Tiene token e intenta ir al login → redirigir al inicio
   if (to.meta.public && token) {
     return '/'

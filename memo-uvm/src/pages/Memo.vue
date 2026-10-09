@@ -188,7 +188,9 @@ onMounted(() => {
           <v-chip :color="equiposSeleccionados.length > 0 ? 'success' : (intentoEnvio ? 'error' : 'default')"
             variant="tonal" size="small"
             :prepend-icon="equiposSeleccionados.length > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline'">
-            {{ equiposSeleccionados.length > 0 ? `${equiposSeleccionados.length} equipo(s) seleccionado(s)` : 'Al menos 1 equipo requerido' }}
+            {{ equiposSeleccionados.length > 0 ?
+              `${equiposSeleccionados.length} equipo(s) seleccionado(s)`
+              : 'Al menos 1 equipo requerido' }}
           </v-chip>
         </div>
 
@@ -230,7 +232,8 @@ onMounted(() => {
             </v-col>
             <v-col cols="12" md="6">
               <v-autocomplete v-model="datos.pa_quien" label="Para quien" type="text" density="compact"
-                variant="outlined" prepend-inner-icon="mdi-account" :items="depa" item-title="nombre_dep" item-value="id_dep" :rules="[reglas.required]" />
+                variant="outlined" prepend-inner-icon="mdi-account" :items="depa" item-title="nombre_dep"
+                item-value="id_dep" :rules="[reglas.required]" />
             </v-col>
             <v-col cols="12" md="6">
               <v-text-field v-model="datos.asunto" label="Asunto" type="text" density="compact" variant="outlined"
@@ -241,16 +244,28 @@ onMounted(() => {
                 density="compact" variant="outlined" prepend-inner-icon="mdi-comment-text-outline"
                 :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" sm="auto">
-              <v-btn color="primary" prepend-icon="mdi-file-document-check" @click="generarMemorando"
-                :loading="cargando">
-                Generar memorando
-              </v-btn>
+            <v-col cols="12" sm="4">
+              <v-switch label="¿Requiere pasar por garita?" v-model="datos.vigilancia" inset color="primary" />
+              <v-chip :color="datos.vigilancia ? 'success' : 'default'" variant="tonal" size="small"
+                :prepend-icon="datos.vigilancia ? 'mdi-check-circle' : 'mdi-alert-circle-outline'">
+                {{ datos.vigilancia ? 'Sí, requiere pasar por garita' : 'No requiere pasar por garita' }}
+              </v-chip>
+              {{ datos.vigilancia }}
             </v-col>
-            <v-col cols="12" sm="auto">
-              <v-btn color="error" variant="tonal" prepend-icon="mdi-restore" @click="restablecer">
-                Restablecer
-              </v-btn>
+            <v-col cols="12" class="my-0 p-0">
+              <v-row>
+                <v-col cols="12" sm="auto">
+                  <v-btn color="primary" prepend-icon="mdi-file-document-check" @click="generarMemorando"
+                    :loading="cargando">
+                    Generar memorando
+                  </v-btn>
+                </v-col>
+                <v-col cols="12" sm="auto">
+                  <v-btn color="error" variant="tonal" prepend-icon="mdi-restore" @click="restablecer">
+                    Restablecer
+                  </v-btn>
+                </v-col>
+              </v-row>
             </v-col>
           </v-row>
         </v-form>
@@ -258,12 +273,7 @@ onMounted(() => {
     </v-card>
 
     <!-- Overlay de carga -->
-    <v-overlay
-      :model-value="cargando"
-      class="align-center justify-center"
-      persistent
-      scrim="black"
-    >
+    <v-overlay :model-value="cargando" class="align-center justify-center" persistent scrim="black">
       <v-card class="pa-8 d-flex flex-column align-center text-center rounded-xl" max-width="400" elevation="12">
         <div class="position-relative d-flex align-center justify-center mb-5">
           <v-progress-circular indeterminate color="primary" size="90" width="6"></v-progress-circular>

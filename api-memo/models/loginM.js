@@ -6,7 +6,11 @@ class loginmodel {
   all(user_id) {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.permisos(user_id);
+        const superAdmin = await this.permisos(user_id);
+        let whereClause = '';
+        if (!superAdmin) {
+          whereClause = 'WHERE u.id_dep = (SELECT id_dep FROM responsable WHERE id = ?)';
+        }
         const sql = `
           SELECT
             u.id,
@@ -24,9 +28,10 @@ class loginmodel {
           FROM responsable u
           LEFT JOIN login l ON l.cedula = u.cedula
           INNER JOIN departamentos d ON d.id_dep = u.id_dep
+          ${whereClause}
         `;
         const sql2 = `SELECT * FROM departamentos`
-        const [rows] = await db.query(sql);
+        const [rows] = await db.query(sql, superAdmin ? [] : [user_id]);
         const [depa] = await db.query(sql2);
         resolve({ status: 200, message: 'Usuarios obtenidos con éxito', data: rows, depa: depa });
       } catch (error) {
@@ -38,7 +43,7 @@ class loginmodel {
   permisos(user_id) {
     return new Promise(async (resolve, reject) => {
       try {
-        const sql = 'SELECT permisos FROM login WHERE id_responsable = ?';
+        const sql = 'SELECT permisos, per_super FROM login WHERE id_responsable = ?';
         const [rows] = await db.query(sql, [user_id]);
         if (rows.length === 0) {
           return reject({ message: 'No tienes permiso para realizar esta acción', status: 403 });
@@ -46,7 +51,12 @@ class loginmodel {
         if (rows[0].permisos === 0 || rows[0].permisos === 2) {
           return reject({ message: 'No tienes permiso para realizar esta acción', status: 403 });
         }
-        resolve();
+        let superAdmin = rows[0].per_super;
+        if (superAdmin === 0) {
+          return resolve();
+        } else {
+          resolve(true);
+        }
       } catch (error) {
         reject(error);
       }
@@ -73,7 +83,7 @@ class loginmodel {
 
   async authenticate(data) {
     return new Promise(async (resolve, reject) => {
-      const sqlLogin = 'SELECT clave, permisos FROM login WHERE cedula = ?';
+      const sqlLogin = 'SELECT clave, permisos, per_super AS super_admin FROM login WHERE cedula = ?';
       const sqlUser = 'SELECT id, nombre, apellido, cedula, firma, id_dep, eliminado FROM responsable WHERE cedula = ?';
       try {
         const [rows] = await db.query(sqlLogin, [data.cedula]);
@@ -90,6 +100,7 @@ class loginmodel {
         if (userRows.length === 0) {
           return reject({ message: 'Responsable no encontrado', status: 404 });
         }
+        userRows[0].super_admin = rows[0].super_admin;
         await db.query('UPDATE login SET last_login = CURRENT_TIMESTAMP WHERE cedula = ?', [data.cedula]);
         resolve({ message: 'Autenticación exitosa', status: 200, responsable: userRows[0], permisos: rows[0].permisos });
       } catch (error) {

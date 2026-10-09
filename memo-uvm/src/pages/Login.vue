@@ -26,7 +26,6 @@ async function iniciarSesion() {
       const token = res.data.token
       if (token) {
         document.cookie = `token=${token}; path=/`
-        document.cookie = `permiso=${res.data.permisos}; path=/`
       }
       toast.success(res.data.message || '¡Bienvenido!')
       router.push('/')

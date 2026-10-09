@@ -51,3 +51,16 @@ ALTER TABLE login MODIFY permisos INT DEFAULT 2;
 
 ALTER TABLE departamentos ADD email VARCHAR(100);
 
+-- 09/10/2026
+CREATE TABLE IF NOT EXISTS vigilantes(
+  id_vigilante INT PRIMARY KEY AUTO_INCREMENT,
+  id_responsable INT,
+  fec_inicio DATE NOT NULL DEFAULT CURRENT_DATE,
+  FOREIGN KEY (id_responsable) REFERENCES responsable(id) ON DELETE CASCADE
+);
+
+ALTER TABLE memorando 
+ADD vig_salida INT,
+ADD vig_entrada INT,
+ADD rec_responsable INT;
+

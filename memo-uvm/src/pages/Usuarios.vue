@@ -5,15 +5,15 @@ import PermisosForm from '@/components/Forms/PermisosForm.vue';
 const usuarios = ref([])
 const departamentos = ref([])
 const cargando = ref(false)
-
+const tokenUser = ref('')
 // Tabla
 const responsablesFormRef = ref(null);
 const confirmDialogRef = ref(null);
 const busqueda = ref('')
 const headers = [
-  { key: 'nombre', title: 'Nombre', sortable: true },
-  { key: 'cedula', title: 'Cédula', sortable: false },
-  { key: 'email_resp', title: 'Correo', sortable: true },
+  { key: 'nombre', title: 'Nombre', subtitle: 'Departamento', sortable: true },
+  { key: 'cedula', title: 'Cédula', subtitle: 'Correo', sortable: false },
+  // { key: 'email_resp', title: 'Correo', sortable: true },
   { key: 'last_login', title: 'Último acceso', sortable: true },
   { key: 'permisos', title: 'Permisos', sortable: false },
   { key: 'acciones', title: 'Opciones', sortable: false },
@@ -183,11 +183,15 @@ function coloresRoles(id) {
   }
 }
 
-onMounted(() => cargaInicial())
+onMounted(() => {
+  cargaInicial()
+  tokenUser.value = decodeToken()
+})
 </script>
 
 <template>
   <v-container>
+  {{ tokenUser }}
     <v-row align="center" class="mb-4">
       <v-col>
         <h1 class="text-h5 font-weight-bold">Gestión de Usuarios</h1>
@@ -215,17 +219,42 @@ onMounted(() => cargaInicial())
         <v-data-table :headers="headers" :items="usuarios" :search="busqueda" :loading="cargando"
           :mobile="$vuetify.display.smAndDown" no-data-text="No hay usuarios registrados"
           loading-text="Cargando usuarios..." items-per-page-text="Usuarios por página">
+
+          <!-- Headers -->
+          <template #header.nombre="{ column }">
+            <span class="text-subtitle-2 font-weight-bold">{{ column.title }}</span>
+            <small class="text-body-2 text-medium-emphasis d-block">{{ column.subtitle }}</small>
+          </template>
+
+          <template #header.cedula="{ column }">
+            <span class="text-subtitle-2 font-weight-bold">{{ column.title }}</span>
+            <small class="text-body-2 text-medium-emphasis d-block">{{ column.subtitle }}</small>
+          </template>
+
           <!-- Nombre completo -->
           <template v-slot:item.nombre="{ item }">
             <div class="d-flex align-center ga-3 py-1">
-              <v-avatar color="primary" variant="tonal" size="36">
-                <span class="text-caption font-weight-bold">
+              <v-avatar color="primary" variant="tonal" size="26">
+                <small class="font-weight-bold">
                   {{ item.nombre?.charAt(0) }}{{ item.apellido?.charAt(0) }}
-                </span>
+                </small>
               </v-avatar>
               <div>
                 <div class="font-weight-medium">{{ item.nombre }} {{ item.apellido }}</div>
               </div>
+            </div>
+            <div class="d-flex align-center ga-1 mt-1">
+              <v-icon color="primary" class="mr-1">
+                mdi-map-marker-account-outline
+              </v-icon>
+              <small class="text-body-2 text-medium-emphasis">{{ item.departamento || 'Sin departamento' }}</small>
+            </div>
+          </template>
+          <!-- Cédula y correo -->
+          <template v-slot:item.cedula="{ item }">
+            <div class="d-flex flex-column">
+              <span class="font-weight-medium">{{ item.cedula || 'Sin cédula' }}</span>
+              <small class="text-body-2 text-medium-emphasis">{{ item.email_resp || 'Sin correo' }}</small>
             </div>
           </template>
 

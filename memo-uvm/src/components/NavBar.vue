@@ -22,12 +22,7 @@ function isActive(path) {
 }
 
 onMounted(() => {
-  if (document.cookie) {
-    const permisoCookie = document.cookie
-      .split(';')
-      .find(row => row.trim().startsWith('permiso='));
-    permiso.value = permisoCookie ? permisoCookie.trim().split('permiso=')[1] : null
-  }
+  permiso.value = decodeToken()?.permisos
 })
 
 function clearTokenCookie() {

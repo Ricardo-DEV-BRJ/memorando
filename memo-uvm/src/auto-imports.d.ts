@@ -19,6 +19,7 @@ declare global {
   const computed: typeof import('vue').computed
   const createApp: typeof import('vue').createApp
   const customRef: typeof import('vue').customRef
+  const decodeToken: typeof import('./utils/decode.js').decodeToken
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
   const effectScope: typeof import('vue').effectScope
@@ -31,6 +32,7 @@ declare global {
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
+  const getToken: typeof import('./utils/decode.js').getToken
   const h: typeof import('vue').h
   const imagenABase641a1: typeof import('./utils/imagen.js').imagenABase641a1
   const imagenABase64Cuadrada: typeof import('./utils/imagen.js').imagenABase64Cuadrada
@@ -42,6 +44,7 @@ declare global {
   const isReadonly: typeof import('vue').isReadonly
   const isRef: typeof import('vue').isRef
   const isShallow: typeof import('vue').isShallow
+  const isTokenExpired: typeof import('./utils/decode.js').isTokenExpired
   const lateral: typeof import('./utils/imagenes.js').lateral
   const markRaw: typeof import('vue').markRaw
   const menbrete: typeof import('./utils/imagenes.js').menbrete
@@ -116,6 +119,7 @@ declare module 'vue' {
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
+    readonly decodeToken: UnwrapRef<typeof import('./utils/decode.js')['decodeToken']>
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
@@ -128,6 +132,7 @@ declare module 'vue' {
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
+    readonly getToken: UnwrapRef<typeof import('./utils/decode.js')['getToken']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly imagenABase641a1: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase641a1']>
     readonly imagenABase64Cuadrada: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase64Cuadrada']>
@@ -139,6 +144,7 @@ declare module 'vue' {
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
     readonly isShallow: UnwrapRef<typeof import('vue')['isShallow']>
+    readonly isTokenExpired: UnwrapRef<typeof import('./utils/decode.js')['isTokenExpired']>
     readonly lateral: UnwrapRef<typeof import('./utils/imagenes.js')['lateral']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly menbrete: UnwrapRef<typeof import('./utils/imagenes.js')['menbrete']>

@@ -87,10 +87,11 @@ class memoModel {
       const connection = await db.getConnection();
       try {
         await connection.beginTransaction();
-        const { respSeleccionado, fecha, ubicacion, asunto, descripcion, pa_quien, creado_por, equiposSeleccionados, id_dep } = data;
+        const { respSeleccionado, fecha, ubicacion, asunto, descripcion, pa_quien, creado_por, equiposSeleccionados, id_dep, vigilancia } = data;
         const { direccionUrl } = data
-        const sqlMemo = 'INSERT INTO memorando (id_responsable, id_ubicacion, asunto, fecha, descripcion, pa_quien, creado_por, id_dep) VALUES (?,?,?,?,?,?,?,?)';
-        const valoresMemo = [respSeleccionado, ubicacion, asunto, fecha, descripcion, pa_quien, creado_por, id_dep];
+        const sqlMemo = 'INSERT INTO memorando (id_responsable, id_ubicacion, asunto, fecha, descripcion, pa_quien, creado_por, id_dep, vigilancia) VALUES (?,?,?,?,?,?,?,?,?)';
+        const re_vigilancia = vigilancia ? 11 : 0;
+        const valoresMemo = [respSeleccionado, ubicacion, asunto, fecha, descripcion, pa_quien, creado_por, id_dep, re_vigilancia];
         const [resultMemo] = await connection.query(sqlMemo, valoresMemo);
         const idMemo = resultMemo.insertId;
         const year = new Date().getFullYear();
@@ -118,7 +119,7 @@ class memoModel {
         direcciones.push(result.email_resp)
         direcciones.push(result.em_email)
         direcciones.push(result.pa_email)
-        await envioCorreo(direcciones.join(', '), result.asunto, result.descripcion, result.folio_me, pdfBuffer)
+        // await envioCorreo(direcciones.join(', '), result.asunto, result.descripcion, result.folio_me, pdfBuffer)
         resolve({ status: 201, data: { id: idMemo }, message: 'Memorando creado con éxito' });
       } catch (error) {
         await connection.rollback();

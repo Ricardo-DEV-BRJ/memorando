@@ -28,7 +28,8 @@ class logincontroller {
               nombre: responsable.nombre,
               apellido: responsable.apellido,
               permisos: permisos,
-              id_dep: responsable.id_dep
+              id_dep: responsable.id_dep,
+              super_admin: responsable.super_admin
             },
             secretKey,
             { expiresIn: '8h' }
