@@ -3,11 +3,10 @@ import { generarMemo } from '@/utils/imprimir'
 import { formatFecha, coloresEstados } from '@/composables/useFunciones'
 import EstadoMemo from '@/components/Modals/EstadoMemo.vue'
 import { capitalize } from 'vue'
-import { generarMemoCorreo } from '@/utils/enviarMemo'
 
 const emit = defineEmits(['actualizado'])
 const estadoMemo = ref(null)
-
+const user = decodeToken()
 // Modal de Detalles
 const diagDetalle = ref(false)
 const memoSeleccionado = ref(null)
@@ -38,8 +37,17 @@ function obtenerDatosMemo(datos) {
     firmante: datos.nombre + ' ' + datos.apellido,
     folio_me: datos.folio_me,
     urlMemo: `${window.location.origin}/verificacion/${datos.folio_me}`,
-    estado: datos.estado ? capitalize(datos.estado) : ''
-
+    estado: datos.estado ? capitalize(datos.estado) : '',
+    fec_sal: formatFechaHora(datos.fec_sal),
+    nom_vig_sal: datos.nom_vig_sal,
+    firma_sal: datos.firma_vig_sa,
+    fec_ent: formatFechaHora(datos.fec_ent),
+    nom_vig_ent: datos.nom_vig_en,
+    firma_ent: datos.firma_vig_en,
+    fec_rec: formatFechaHora(datos.fec_rec),
+    nom_recp: datos.nom_recp,
+    firma_rec: datos.firma_recp,
+    vigilancia: datos.vigilancia,
   }
   generarMemo(datosMemo)
 }
@@ -68,6 +76,22 @@ function marcarRecepcion(item) {
 
 function anularMemo(item) {
   estadoMemo.value.abrir('anular', item)
+}
+
+function marcarSalida(item) {
+  estadoMemo.value.abrir('marcar_salida', item)
+}
+
+function marcarEntrada(item) {
+  estadoMemo.value.abrir('marcar_entrada', item)
+}
+
+function marcarCompletado(item) {
+  estadoMemo.value.abrir('marcar_completado', item)
+}
+
+function marcarSitio(item) {
+  estadoMemo.value.abrir('marcar_sitio', item)
 }
 
 function onActualizado() {
@@ -125,6 +149,14 @@ defineExpose({
             <div class="font-weight-bold text-body-1">{{ memoSeleccionado.folio_me }}</div>
           </v-col>
           <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Para quien</div>
+            <div class="font-weight-bold text-body-1">{{ memoSeleccionado.pa_quien }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
+            <div class="text-caption text-medium-emphasis">Departamento emisor</div>
+            <div class="font-weight-bold text-body-1">{{ memoSeleccionado.dep_emisor }}</div>
+          </v-col>
+          <v-col cols="12" sm="6">
             <div class="text-caption text-medium-emphasis">Estado</div>
             <v-chip :color="coloresEstados(memoSeleccionado.estado)" variant="tonal" prepend-icon="mdi-list-status"
               class="text-capitalize">
@@ -162,12 +194,33 @@ defineExpose({
 
       <v-card-actions class="flex-column flex-sm-row px-4 pb-4 justify-end">
         <v-btn color="error" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-close"
-          @click="anularMemo(memoSeleccionado)" v-if="!memoSeleccionado.estado">
+          @click="anularMemo(memoSeleccionado)" v-if="!memoSeleccionado.estado && user.id_dep != 11">
           Anular
         </v-btn>
         <v-btn color="success" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-check"
-          @click="marcarRecepcion(memoSeleccionado)" v-if="!memoSeleccionado.estado">
+          @click="marcarRecepcion(memoSeleccionado)"
+          v-if="!memoSeleccionado.estado && memoSeleccionado.vigilancia == 0 && memoSeleccionado.id_depa_pa_quien == user.id_dep">
           Recibido
+        </v-btn>
+        <v-btn color="warning" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-check"
+          @click="marcarSalida(memoSeleccionado)" v-if="!memoSeleccionado.estado && memoSeleccionado.vigilancia == user.id_dep
+            && !memoSeleccionado.vig_salida">
+          Marcar salida
+        </v-btn>
+        <v-btn color="warning" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-check"
+          @click="marcarSitio(memoSeleccionado)"
+          v-if="memoSeleccionado.vig_salida && !memoSeleccionado.vig_entrada && memoSeleccionado.estado == 'Salio' && memoSeleccionado.id_depa_emisor == user.id_dep">
+          Marcar en el sitio
+        </v-btn>
+        <v-btn color="warning" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-check"
+          @click="marcarEntrada(memoSeleccionado)"
+          v-if="user.id_dep === 11 && memoSeleccionado.vig_salida && !memoSeleccionado.vig_entrada && memoSeleccionado.estado == 'En el sitio'">
+          Marcar entrada
+        </v-btn>
+        <v-btn color="success" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-check"
+          @click="marcarCompletado(memoSeleccionado)"
+          v-if="memoSeleccionado.vig_salida && memoSeleccionado.vig_entrada && memoSeleccionado.estado == 'Retorno' && memoSeleccionado.id_depa_emisor == user.id_dep">
+          Marcar completado
         </v-btn>
         <v-btn color="primary" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-printer"
           @click="obtenerDatosMemo(memoSeleccionado)">

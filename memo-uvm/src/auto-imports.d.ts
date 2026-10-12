@@ -26,6 +26,7 @@ declare global {
   const enviarCorreo: typeof import('./utils/enviarMemo.js').enviarCorreo
   const final: typeof import('./utils/imagenes.js').final
   const formatFecha: typeof import('./composables/useFunciones.js').formatFecha
+  const formatFechaHora: typeof import('./composables/useFunciones.js').formatFechaHora
   const generarMemo: typeof import('./utils/imprimir.js').generarMemo
   const generarMemoCorreo: typeof import('./utils/enviarMemo.js').generarMemoCorreo
   const generarMemorando: typeof import('./utils/imprimir.js').generarMemorando
@@ -90,6 +91,7 @@ declare global {
   const useModel: typeof import('vue').useModel
   const useRoute: typeof import('vue-router').useRoute
   const useRouter: typeof import('vue-router').useRouter
+  const useSesion: typeof import('./composables/useSesion.js').useSesion
   const useSlots: typeof import('vue').useSlots
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useToastState: typeof import('./composables/useToast.js').useToastState
@@ -126,6 +128,7 @@ declare module 'vue' {
     readonly enviarCorreo: UnwrapRef<typeof import('./utils/enviarMemo.js')['enviarCorreo']>
     readonly final: UnwrapRef<typeof import('./utils/imagenes.js')['final']>
     readonly formatFecha: UnwrapRef<typeof import('./composables/useFunciones.js')['formatFecha']>
+    readonly formatFechaHora: UnwrapRef<typeof import('./composables/useFunciones.js')['formatFechaHora']>
     readonly generarMemo: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemo']>
     readonly generarMemoCorreo: UnwrapRef<typeof import('./utils/enviarMemo.js')['generarMemoCorreo']>
     readonly generarMemorando: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemorando']>
@@ -190,6 +193,7 @@ declare module 'vue' {
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
+    readonly useSesion: UnwrapRef<typeof import('./composables/useSesion.js')['useSesion']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useToastState: UnwrapRef<typeof import('./composables/useToast.js')['useToastState']>

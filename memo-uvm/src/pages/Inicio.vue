@@ -190,10 +190,13 @@ onMounted(() => {
       <v-card-text>
         <v-row>
           <v-col cols="12" sm="6" md="auto">
-            <v-btn color="primary" @click="abrirEquipos">Agregar Equipo</v-btn>
+            <v-btn color="primary" prepend-icon="mdi-pen-plus" @click="abrirEquipos">Agregar Equipo</v-btn>
           </v-col>
           <v-col cols="12" sm="6" md="auto">
-           <v-btn color="primary" @click="abrirUbicaciones">Agregar Ubicación</v-btn>
+           <v-btn color="primary" prepend-icon="mdi-account-multiple-plus" @click="abrirUbicaciones">Agregar Ubicación</v-btn>
+          </v-col>
+          <v-col cols="12" sm="6" md="auto">
+           <v-btn color="primary" prepend-icon="mdi-format-list-text" >Agregar lista de equipos</v-btn>
           </v-col>
         </v-row>
       </v-card-text>

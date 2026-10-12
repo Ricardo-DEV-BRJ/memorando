@@ -110,6 +110,7 @@ const convertirADataUrlPng = (imagenSrc) => {
 
 export const generarMemo = async (datos) => {
   memoData = datos;
+  console.log(memoData)
   if (datos.equipos.length <= 6) {
     cantidadEquiposPorHoja = 5;
   } else if (datos.equipos.length > 6) {
@@ -125,6 +126,9 @@ export const generarMemorando = async () => {
   const b64Membrete = menbrete;
   const b64Footer = final;
   const b64Anulado = await convertirADataUrlPng(anulado);
+  const b64Salida = await convertirADataUrlPng(memoData.firma_sal)
+  const b64Entrada = await convertirADataUrlPng(memoData.firma_ent)
+  const b64Recepcion = await convertirADataUrlPng(memoData.firma_rec)
 
   const firmaPng = await convertirADataUrlPng(memoData.firma);
 
@@ -194,15 +198,15 @@ export const generarMemorando = async () => {
               color: '#555555'
             }
           ],
-          absolutePosition: { x: 450, y: 127 },
+          absolutePosition: { x: 500, y: 20 },
           width: 70, height: 70
         },
-        (memoData.estado?.toLowerCase() === 'anulado' ? [{ image: b64Anulado, width:250, height:250, absolutePosition: { x: 200, y:200   } }] : [])
+        (memoData.estado?.toLowerCase() === 'anulado' ? [{ image: b64Anulado, width: 250, height: 250, absolutePosition: { x: 200, y: 200 } }] : [])
       ]
     },
     header: function () {
       return [
-        { image: b64Membrete, width: 400, margin: [120, 20, 0, 0] },
+        { image: b64Membrete, width: 400, margin: [100, 20, 0, 0] },
       ];
     },
     footer: function () {
@@ -251,14 +255,58 @@ export const generarMemorando = async () => {
       // 3. Insertar las listas procesadas
       ...listasDinamicas,
 
-      { text: 'Recibido por:', margin: [0, 10, 0, 40] }, //[cite: 1]
-      { text: 'Atentamente,', alignment: 'center' }, //[cite: 1]
-      { text: memoData.firmante, bold: true, alignment: 'center', margin: [0, 5, 0, 0] }, //[cite: 1]
-      ...(firmaPng
-        ? [{ image: firmaPng, width: 100, alignment: 'center', margin: [0, 5, 0, 0] }]
-        : []
-      ),
-      { text: memoData.de, alignment: 'center' }, //[cite: 1]
+      // { text: 'Recibido por:' }, //[cite: 1]
+      {
+        table: {
+          dontBreakRows: true,
+          widths: ['*', 210, '*'],
+          body: [[
+            {
+              stack: [
+                ...(memoData.nom_vig_sal ? [
+                  { text: 'Salida:', bold: true },
+                  { text: memoData.fec_sal || '---', bold: false, fontSize: 10 },
+                  b64Salida ? { image: b64Salida, width: 70 } : { text: '\n\n' },
+                  { text: memoData.nom_vig_sal, bold: true },
+                  { text: '' }
+                ] : []),
+                ...(!memoData.vigilancia && memoData.nom_recp ? [
+                  { text: 'Recibido por:', bold: true },
+                  { text: memoData.fec_rec || '---', bold: false, fontSize: 10 },
+                  b64Recepcion ? { image: b64Recepcion, width: 70 } : { text: '\n\n' },
+                  { text: memoData.nom_recp, bold: true }
+                ] : [])
+              ],
+              alignment: 'left',
+              margin: [0, 0, 10, 0]
+            },
+            {
+              stack: [
+                { text: 'Atentamente', bold: true, alignment: 'center' },
+                firmaPng ? { image: firmaPng, width: 70, alignment: 'center' } : { text: '\n\n' },
+                { text: memoData.firmante, bold: true, alignment: 'center', margin: [0, 5, 0, 0] }, //[cite: 1]
+                { text: memoData.de, alignment: 'center' }, //[cite: 1]
+              ],
+              alignment: 'center',
+              margin: [0, 0, 0, 0]
+            },
+            {
+              stack: [
+                ...(memoData.nom_vig_ent ? [
+                  { text: 'Entrada:', bold: true },
+                  { text: memoData.fec_ent || '---', bold: false, fontSize: 10 },
+                  b64Entrada ? { image: b64Entrada, width: 70, alignment: 'right' } : { text: '\n\n' },
+                  { text: memoData.nom_vig_ent, bold: true }
+                ] : [])
+              ],
+              alignment: 'right',
+              margin: [10, 0, 0, 0]
+            }
+          ]]
+        },
+        layout: 'noBorders',
+        margin: [0, 20, 0, 0]
+      },
     ]
   };
 

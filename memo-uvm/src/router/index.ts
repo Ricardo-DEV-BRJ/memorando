@@ -12,6 +12,8 @@ import Usuarios from '@/pages/Usuarios.vue'
 import Memo from '@/pages/Memo.vue'
 import HistorialMemos from '@/pages/HistorialMemos.vue'
 import VerificacionMemos from '@/pages/VerificacionMemos.vue'
+import CambioClave from '@/pages/CambioClave.vue'
+import Perfil from '@/pages/Perfil.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +27,11 @@ const router = createRouter({
       path: '/verificacion/:folio',
       component: VerificacionMemos,
       meta: { title: 'Verificación de Memorando', requiresAuth: false}
+    },
+    {
+      path: '/cambiar-clave',
+      component: CambioClave,
+      meta: { title: 'Cambiar Contraseña', requiresAuth: true }
     },
     {
       path: '/',
@@ -46,6 +53,11 @@ const router = createRouter({
       component: HistorialMemos,
       meta: { title: 'Historial de Memorandos', requiresAuth: true }
     },
+    {
+      path: '/perfil',
+      component: Perfil,
+      meta: { title: 'Mi Perfil', requiresAuth: true }
+    },
   ],
 })
 
@@ -56,7 +68,9 @@ function getToken(): string | null {
 
 router.beforeEach((to) => {
   const token = getToken()
-  const permiso = decodeToken()?.permisos
+  const payload = decodeToken()
+  const permiso = payload?.permisos
+  const cambioClave = !!payload?.change_pass
   // Tiene token e intenta ir al login → redirigir al inicio
   if (to.meta.public && token) {
     return '/'
@@ -64,6 +78,14 @@ router.beforeEach((to) => {
   // No tiene token e intenta ir a ruta protegida → redirigir al login
   if (to.meta.requiresAuth && !token) {
     return '/login'
+  }
+  // Tiene el cambio de contraseña pendiente → solo puede estar en la vista de cambio de clave
+  if (to.meta.requiresAuth && cambioClave && to.path !== '/cambiar-clave') {
+    return '/cambiar-clave'
+  }
+  // No tiene el cambio pendiente e intenta ir a la vista de cambio de clave → redirigir al inicio
+  if (to.path === '/cambiar-clave' && !cambioClave) {
+    return '/'
   }
   // Si tiene permiso 0 y quiere ir a usuarios → redirigir al inicio
   if (to.meta.adminUser && permiso != 1) {

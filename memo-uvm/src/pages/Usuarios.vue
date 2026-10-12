@@ -30,7 +30,7 @@ const userSeleccionado = ref(null)
 const cargandoActivar = ref(false)
 
 const diagAccesoLogin = ref(false)
-const userAcceso = ref(null)
+const userAcceso = ref()
 const claveAcceso = ref('')
 const mostrarPassword = ref(false)
 const cargandoAcceso = ref(false)
@@ -134,11 +134,10 @@ function abrirAccesoLogin(item) {
 function guardarAccesoLogin() {
   if (!userAcceso.value || !claveAcceso.value) return;
   cargandoAcceso.value = true;
-  apiCall('login/acceso', {
-    id_responsable: userAcceso.value.id,
-    cedula: userAcceso.value.cedula,
+  apiCall(`login/${userAcceso.value.id}`, {
+    change_pass: userAcceso.value.change_pass || 0,
     clave: claveAcceso.value
-  }, 'POST')
+  }, 'PUT')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
         toast.success(res.data.message || 'Acceso al login concedido con éxito');
@@ -191,7 +190,6 @@ onMounted(() => {
 
 <template>
   <v-container>
-  {{ tokenUser }}
     <v-row align="center" class="mb-4">
       <v-col>
         <h1 class="text-h5 font-weight-bold">Gestión de Usuarios</h1>
@@ -372,6 +370,10 @@ onMounted(() => {
                 prepend-inner-icon="mdi-lock" :append-inner-icon="mostrarPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="mostrarPassword = !mostrarPassword" density="compact"
                 :rules="[reglas.required]"></v-text-field>
+            </v-col>
+            <v-col cols="12" class="py-0">
+              <v-checkbox v-model="userAcceso.change_pass" label="Solicitar cambio de contraseña al iniciar sesión" 
+                color="primary" density="compact" :true-value="1" :false-value="0"></v-checkbox>
             </v-col>
           </v-row>
         </v-form>

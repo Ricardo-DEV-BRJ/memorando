@@ -21,6 +21,50 @@ const config = computed(() => {
       endpoint: `memorandos/recibir/${memoId.value}`,
       toastExito: 'Memorando marcado como recibido correctamente',
     }
+  } else if (accion.value === 'marcar_salida') {
+    return {
+      color: 'warning',
+      icon: 'mdi-check-circle-outline',
+      titulo: 'Marcar salida',
+      mensaje: '¿Estás seguro de que deseas marcar este memorando como salida? Esta acción no se puede deshacer.',
+      btnTexto: 'Marcar como salida',
+      btnIcon: 'mdi-check',
+      endpoint: `memorandos/marcar_salida/${memoId.value}`,
+      toastExito: 'Memorando marcado como salida correctamente',
+    }
+  } else if (accion.value === 'marcar_entrada') {
+    return {
+      color: 'primary',
+      icon: 'mdi-check-circle-outline',
+      titulo: 'Marcar entrada',
+      mensaje: '¿Estás seguro de que deseas marcar este memorando como entrada? Esta acción no se puede deshacer.',
+      btnTexto: 'Marcar como entrada',
+      btnIcon: 'mdi-check',
+      endpoint: `memorandos/marcar_entrada/${memoId.value}`,
+      toastExito: 'Memorando marcado como entrada correctamente',
+    }
+  } else if (accion.value === 'marcar_sitio') {
+    return {
+      color: 'success',
+      icon: 'mdi-check-circle-outline',
+      titulo: 'Marcar entrada',
+      mensaje: '¿Estás seguro de que deseas marcar este memorando como en el sitio? Esta acción no se puede deshacer.',
+      btnTexto: 'Marcar en el sitio',
+      btnIcon: 'mdi-check',
+      endpoint: `memorandos/marcar_sitio/${memoId.value}`,
+      toastExito: 'Memorando marcado como en el sitio correctamente',
+    }
+  } else if (accion.value === 'marcar_completado') {
+    return {
+      color: 'success',
+      icon: 'mdi-check-circle-outline',
+      titulo: 'Marcar completado',
+      mensaje: '¿Estás seguro de que deseas marcar este memorando como completado? Esta acción no se puede deshacer.',
+      btnTexto: 'Marcar completado',
+      btnIcon: 'mdi-check',
+      endpoint: `memorandos/marcar_completado/${memoId.value}`,
+      toastExito: 'Memorando marcado como completado correctamente',
+    }
   }
   return {
     color: 'error',
@@ -67,12 +111,7 @@ defineExpose({ abrir })
 
       <!-- Ícono central de confirmación -->
       <v-card-text class="text-center pt-8 pb-2 px-6">
-        <v-avatar
-          :color="config.color"
-          variant="tonal"
-          size="72"
-          class="mb-4"
-        >
+        <v-avatar :color="config.color" variant="tonal" size="72" class="mb-4">
           <v-icon :icon="config.icon" size="40" />
         </v-avatar>
 
@@ -89,25 +128,13 @@ defineExpose({ abrir })
 
       <v-card-actions class="flex-column ga-2 px-6 pb-6 pt-2">
         <!-- Botón de acción principal -->
-        <v-btn
-          :color="config.color"
-          variant="flat"
-          :prepend-icon="config.btnIcon"
-          :loading="cargando"
-          class="w-100"
-          @click="confirmar"
-        >
+        <v-btn :color="config.color" variant="flat" :prepend-icon="config.btnIcon" :loading="cargando" class="w-100"
+          @click="confirmar">
           {{ config.btnTexto }}
         </v-btn>
 
         <!-- Cancelar -->
-        <v-btn
-          variant="tonal"
-          color="grey"
-          class="w-100"
-          :disabled="cargando"
-          @click="dialog = false"
-        >
+        <v-btn variant="tonal" color="grey" class="w-100" :disabled="cargando" @click="dialog = false">
           Cancelar
         </v-btn>
       </v-card-actions>

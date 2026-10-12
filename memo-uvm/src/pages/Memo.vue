@@ -31,6 +31,7 @@ const datos = ref({
   pa_quien: null,
   asunto: 'Salida - Entrada de equipos',
   descripcion: textoBase,
+  vigilancia: false,
 })
 
 function restablecer() {
@@ -41,6 +42,7 @@ function restablecer() {
     pa_quien: null,
     asunto: 'Salida - Entrada de equipos',
     descripcion: textoBase,
+    vigilancia: false,
   }
   equiposSeleccionados.value = []
   intentoEnvio.value = false
@@ -105,13 +107,19 @@ async function generarMemorando() {
   }
 
   const memorando = {
-    respSeleccionado: datos.value.respSeleccionado,
+    respSeleccionado: Number(datos.value.respSeleccionado),
     fecha: datos.value.fecha,
-    ubicacion: datos.value.ubicacion,
-    pa_quien: datos.value.pa_quien,
+    ubicacion: Number(datos.value.ubicacion),
+    pa_quien: Number(datos.value.pa_quien),
     asunto: datos.value.asunto,
     descripcion: datos.value.descripcion,
-    equiposSeleccionados: equiposSeleccionados.value,
+    vigilancia: !!datos.value.vigilancia,
+    equiposSeleccionados: equiposSeleccionados.value.map((item) => {
+      if (typeof item === 'object' && item !== null) {
+        return Number(item.id ?? item.value ?? item)
+      }
+      return Number(item)
+    }),
     direccionUrl: `${window.location.origin}/verificacion/`
   }
   cargando.value = true
@@ -134,14 +142,19 @@ function obtenerDatos() {
   if (dataMemo) {
     datos.value = {
       respSeleccionado: dataMemo.id_responsable,
-      fecha: new Date(dataMemo.fecha,).toISOString().split('T')[0],
+      fecha: new Date(dataMemo.fecha).toISOString().split('T')[0],
       ubicacion: dataMemo.id_ubicacion,
-      pa_quien: dataMemo.pa_quien,
+      pa_quien: dataMemo.id_depa_pa_quien,
       asunto: dataMemo.asunto,
       descripcion: dataMemo.descripcion,
+      vigilancia: dataMemo.vigilancia,
     }
-    equiposSeleccionados.value = dataMemo.equipos.map(item => item.id),
-      console.log(datos.value)
+    const idsGuardados = dataMemo.equipos.map(item => item.id)
+    // Opción 1: Usando .some() (ideal si las listas son pequeñas o medianas)
+    equiposSeleccionados.value = idsGuardados.filter(id =>
+      equipos.value.some(equipo => equipo.id === id)
+    )
+
   }
 }
 
@@ -250,7 +263,6 @@ onMounted(() => {
                 :prepend-icon="datos.vigilancia ? 'mdi-check-circle' : 'mdi-alert-circle-outline'">
                 {{ datos.vigilancia ? 'Sí, requiere pasar por garita' : 'No requiere pasar por garita' }}
               </v-chip>
-              {{ datos.vigilancia }}
             </v-col>
             <v-col cols="12" class="my-0 p-0">
               <v-row>

@@ -17,6 +17,6 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const mostrarNavbar = computed(() => route.path !== '/login' && !route.path.startsWith('/verificacion'))
+const mostrarNavbar = computed(() => route.path !== '/login' && route.path !== '/cambiar-clave' && !route.path.startsWith('/verificacion'))
 </script>
 

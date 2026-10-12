@@ -28,7 +28,11 @@ async function iniciarSesion() {
         document.cookie = `token=${token}; path=/`
       }
       toast.success(res.data.message || '¡Bienvenido!')
-      router.push('/')
+      if (res.data.change_pass) {
+        router.push('/cambiar-clave')
+      } else {
+        router.push('/')
+      }
     } else {
       errorMsg.value = res.data?.message || 'Credenciales incorrectas'
     }

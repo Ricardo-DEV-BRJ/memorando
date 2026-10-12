@@ -1,13 +1,15 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDisplay } from 'vuetify'
 import { toast } from '@/composables/useToast'
+import { useSesion } from '@/composables/useSesion'
 
 const route = useRoute()
 const router = useRouter()
 const { mdAndUp } = useDisplay()
-const permiso = ref(null)
+const { usuario, nombreCompleto, nombreCorto, iniciales, rol, refrescarSesion } = useSesion()
+const permiso = computed(() => usuario.value?.permisos)
 const drawer = ref(false)
 
 const rutas = [
@@ -22,7 +24,8 @@ function isActive(path) {
 }
 
 onMounted(() => {
-  permiso.value = decodeToken()?.permisos
+  // El token pudo cambiar desde la última vez (nuevo login), se vuelve a leer
+  refrescarSesion()
 })
 
 function clearTokenCookie() {
@@ -101,6 +104,20 @@ function cerrarSesion() {
         <!-- Botón Cambiar Tema -->
         <BotonTema />
 
+        <!-- Usuario logueado / Mi Perfil -->
+        <v-btn to="/perfil" height="44" :title="`${nombreCompleto} · Mi Perfil`"
+          :color="isActive('/perfil') ? 'primary' : undefined" :variant="isActive('/perfil') ? 'tonal' : 'text'"
+          class="text-none rounded-lg px-1 px-md-2">
+          <v-avatar color="primary" size="32">
+            <span v-if="iniciales" class="text-caption font-weight-bold">{{ iniciales }}</span>
+            <v-icon v-else icon="mdi-account" size="18" />
+          </v-avatar>
+          <div v-if="mdAndUp" class="d-flex flex-column align-start ml-2 usuario-texto">
+            <span class="text-body-2 font-weight-medium text-truncate usuario-nombre">{{ nombreCorto }}</span>
+            <span class="text-caption text-medium-emphasis">{{ rol }}</span>
+          </div>
+        </v-btn>
+
         <!-- Cerrar Sesión -->
         <v-btn icon="mdi-logout" variant="tonal" size="small" color="error" title="Cerrar Sesión"
           @click="cerrarSesion" />
@@ -113,10 +130,23 @@ function cerrarSesion() {
         class="py-3" />
       <v-divider />
 
+      <!-- Usuario logueado -->
+      <v-list-item :title="nombreCompleto" :subtitle="rol" class="py-3">
+        <template #prepend>
+          <v-avatar color="primary" size="40">
+            <span v-if="iniciales" class="text-body-2 font-weight-bold">{{ iniciales }}</span>
+            <v-icon v-else icon="mdi-account" />
+          </v-avatar>
+        </template>
+      </v-list-item>
+      <v-divider />
+
       <v-list density="compact" nav class="pa-2">
         <v-list-item v-for="item in rutas" :key="item.path" :to="item.path"
           :prepend-icon="isActive(item.path) ? item.iconActive : item.icon" :title="item.title"
           :active="isActive(item.path)" color="primary" rounded="lg" @click="drawer = false" />
+        <v-list-item to="/perfil" :prepend-icon="isActive('/perfil') ? 'mdi-account-circle' : 'mdi-account-circle-outline'"
+          title="Mi Perfil" :active="isActive('/perfil')" color="primary" rounded="lg" @click="drawer = false" />
         <v-list-item v-if="$vuetify.display.smAndDown">
           <div class="d-flex align-center ga-2">
             <BotonTema />
@@ -140,5 +170,13 @@ function cerrarSesion() {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
+}
+
+.usuario-texto {
+  line-height: 1.15;
+}
+
+.usuario-nombre {
+  max-width: 160px;
 }
 </style>
