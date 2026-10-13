@@ -10,7 +10,7 @@ const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp']
  * @param {string} format - Formato de salida 'image/webp' o 'image/jpeg' (por defecto 'image/webp')
  * @returns {Promise<string>} Promesa que resuelve con la cadena Base64 Data URL
  */
-export const imagenABase64Optimizado = (fileInput, maxWidth = 800, quality = 0.75, format = 'image/webp') => {
+export const imagenABase64Optimizado = (fileInput, maxWidth = 800, quality = 0.75, format = 'image/jpg') => {
   return new Promise((resolve, reject) => {
     // Si viene de v-file-input, puede ser un array o un archivo único
     const file = Array.isArray(fileInput) ? fileInput[0] : fileInput
@@ -77,7 +77,7 @@ export const imagenABase64Optimizado = (fileInput, maxWidth = 800, quality = 0.7
  * @param {string} format - Formato de salida 'image/webp' o 'image/jpeg' (por defecto 'image/webp')
  * @returns {Promise<string>} Promesa que resuelve con la cadena Base64 Data URL
  */
-export const imagenABase64Cuadrada = (fileInput, size = 600, quality = 0.75, format = 'image/webp') => {
+export const imagenABase64Cuadrada = (fileInput, size = 600, quality = 0.75, format = 'image/jpg') => {
   return new Promise((resolve, reject) => {
     const file = Array.isArray(fileInput) ? fileInput[0] : fileInput
 

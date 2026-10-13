@@ -50,6 +50,7 @@ declare global {
   const markRaw: typeof import('vue').markRaw
   const menbrete: typeof import('./utils/imagenes.js').menbrete
   const nextTick: typeof import('vue').nextTick
+  const obtenerDatos: typeof import('./utils/csv.js').obtenerDatos
   const onActivated: typeof import('vue').onActivated
   const onBeforeMount: typeof import('vue').onBeforeMount
   const onBeforeRouteLeave: typeof import('vue-router').onBeforeRouteLeave
@@ -152,6 +153,7 @@ declare module 'vue' {
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly menbrete: UnwrapRef<typeof import('./utils/imagenes.js')['menbrete']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
+    readonly obtenerDatos: UnwrapRef<typeof import('./utils/csv.js')['obtenerDatos']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
     readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router')['onBeforeRouteLeave']>

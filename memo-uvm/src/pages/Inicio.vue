@@ -1,10 +1,12 @@
 <script setup>
+import ListasAgregarForm from '@/components/Forms/ListasAgregarForm.vue';
 import ModalImagen from '@/components/ModalImagen.vue';
 import { capitalize } from 'vue';
 
 const panel = ref([])
 const equiposFormRef = ref(null);
 const confirmDialogRef = ref(null);
+const lista = ref(null);
 const modalImagenRef = ref(null)
 const ubicacionesFormRef = ref(null)
 
@@ -60,6 +62,10 @@ function cargaInicialUbicaciones() {
 
 function abrirEquipos() {
   equiposFormRef.value.abrir();
+}
+
+function abrirListaEquipos() {
+  lista.value.abrir('equipos');
 }
 
 
@@ -193,10 +199,12 @@ onMounted(() => {
             <v-btn color="primary" prepend-icon="mdi-pen-plus" @click="abrirEquipos">Agregar Equipo</v-btn>
           </v-col>
           <v-col cols="12" sm="6" md="auto">
-           <v-btn color="primary" prepend-icon="mdi-account-multiple-plus" @click="abrirUbicaciones">Agregar Ubicación</v-btn>
+            <v-btn color="primary" prepend-icon="mdi-account-multiple-plus" @click="abrirUbicaciones">Agregar
+              Ubicación</v-btn>
           </v-col>
           <v-col cols="12" sm="6" md="auto">
-           <v-btn color="primary" prepend-icon="mdi-format-list-text" >Agregar lista de equipos</v-btn>
+            <v-btn color="primary" prepend-icon="mdi-format-list-text" @click="abrirListaEquipos()">Agregar lista de
+              equipos</v-btn>
           </v-col>
         </v-row>
       </v-card-text>
@@ -206,8 +214,16 @@ onMounted(() => {
         <v-expansion-panel title="Responsables">
           <v-expansion-panel-text class="bg-background">
             <v-data-table :headers="headers" :items="resp" :mobile="$vuetify.display.smAndDown">
+              <template #header.cedula="{ column }">
+               <span class="text-subtitle-2 font-weight-bold">{{ column.title }}</span>
+                <small class="text-body-2 text-medium-emphasis d-block"> Correo </small>
+              </template>
               <template v-slot:item.nombre="{ item }">
                 {{ item.nombre }} {{ item.apellido }}
+              </template>
+              <template v-slot:item.cedula="{ item }">
+                <span class="text-body-2 font-weight-bold">{{ item.cedula }}</span>
+                <small class="text-body-2 text-medium-emphasis d-block"> {{ item.email_resp }} </small>
               </template>
               <template v-slot:item.firma="{ item }">
                 <v-img v-if="item.firma" :src="item.firma" max-width="150" max-height="60" contain alt="Firma"
@@ -279,6 +295,7 @@ onMounted(() => {
   <confirm-dialog ref="confirmDialogRef" @confirmar="eliminar" />
   <modal-imagen ref="modalImagenRef" />
   <ubicaciones ref="ubicacionesFormRef" @guardado="cargaInicialUbicaciones" />
+  <ListasAgregarForm ref="lista" @guardado="cargaInicialEquipos" />
 
   <v-dialog v-model="diagEstadoEquipo" max-width="400px">
     <v-card class="pa-2 rounded-lg">

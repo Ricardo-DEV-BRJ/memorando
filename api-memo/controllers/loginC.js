@@ -1,5 +1,5 @@
 const loginModel = require('../models/loginM.js');
-const jwt = require('jsonwebtoken');
+const { generarToken } = require('../utils/token.js');
 
 const model = new loginModel();
 
@@ -19,28 +19,28 @@ class logincontroller {
   authenticate(data) {
     return new Promise((resolve, reject) => {
       model.authenticate(data)
-        .then(({ responsable, permisos }) => {
-          const secretKey = process.env.JWT_SECRET;
-          const token = jwt.sign(
-            {
-              id: responsable.id,
-              cedula: responsable.cedula,
-              nombre: responsable.nombre,
-              apellido: responsable.apellido,
-              permisos: permisos,
-              id_dep: responsable.id_dep,
-              super_admin: responsable.super_admin
-            },
-            secretKey,
-            { expiresIn: '8h' }
-          );
+        .then(({ responsable, permisos, change_pass }) => {
+          const token = generarToken(responsable, permisos, change_pass);
           resolve({
             status: 200,
             message: 'Inicio de sesión exitoso',
             token,
             permisos,
+            change_pass,
             responsable,
           });
+        })
+        .catch((err) => reject(err));
+    });
+  }
+
+  cambiarClave(id, data) {
+    return new Promise((resolve, reject) => {
+      model.cambiarClave(id, data)
+        .then(({ message, responsable, permisos }) => {
+          // Nuevo token sin el cambio de contraseña pendiente
+          const token = generarToken(responsable, permisos, 0);
+          resolve({ status: 200, message, token });
         })
         .catch((err) => reject(err));
     });

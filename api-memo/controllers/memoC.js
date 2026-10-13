@@ -62,9 +62,57 @@ class memoController {
     });
   }
 
-  recibir(id) {
+  recibir(id, id_dep, user_id) {
     return new Promise((resolve, reject) => {
-      model.recibir(id)
+      model.recibir(id, id_dep, user_id)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  marcar_salida(id, user_id) {
+    return new Promise((resolve, reject) => {
+      model.marcar_salida(id, user_id)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  marcar_entrada(id, user_id) {
+    return new Promise((resolve, reject) => {
+      model.marcar_entrada(id, user_id)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  marcar_completado(id, id_responsable) {
+    return new Promise((resolve, reject) => {
+      model.marcar_completado(id, id_responsable)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  marcar_sitio(id) {
+    return new Promise((resolve, reject) => {
+      model.marcar_sitio(id)
         .then((res) => {
           resolve(res);
         })

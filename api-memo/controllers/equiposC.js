@@ -38,6 +38,18 @@ class equiposcontroller {
     });
   }
 
+  listas(data) {
+    return new Promise((resolve, reject) => {
+      model.listas(data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
   update(id, data) {
     return new Promise((resolve, reject) => {
       model.update(id, data)

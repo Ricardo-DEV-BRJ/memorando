@@ -14,6 +14,25 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
+// Las rutas de perfil deben ir antes de /:id para que no sean capturadas por esas rutas
+router.get('/perfil', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.perfil(req.user_id);
+    res.status(data.status).json({ message: data.message, data: data.data });
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message || 'Error al obtener el perfil' });
+  }
+});
+
+router.put('/perfil', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.actualizarPerfil(req.user_id, req.body);
+    res.status(data.status).json(data);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message || 'Error al actualizar el perfil' });
+  }
+});
+
 router.get('/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.getOne(req.params.id, req.user_id);
@@ -25,7 +44,7 @@ router.get('/:id', verifyToken, async (req, res) => {
 
 router.post('/', verifyToken, async (req, res) => {
   try {
-    const data = await controller.create(req.body, req.user_id);
+    const data = await controller.create(req.body, req.user_id, req.id_dep);
     res.status(201).json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

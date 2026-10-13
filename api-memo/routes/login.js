@@ -1,6 +1,6 @@
 const express = require('express');
 const loginController = require('../controllers/loginC.js');
-const { verifyToken } = require('../middlewares/auth.middleware.js');
+const { verifyToken, verifyTokenCambioClave } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new loginController();
@@ -60,6 +60,16 @@ router.put('/permisos/:id', verifyToken, async (req, res) => {
     }
   } catch (error) {
     res.status(error.status || 500).json({ message: error.message });
+  }
+});
+
+// Debe ir antes de PUT /:id para que no sea capturada por esa ruta
+router.put('/cambiar-clave', verifyTokenCambioClave, async (req, res) => {
+  try {
+    const data = await controller.cambiarClave(req.user_id, req.body);
+    res.status(data.status).json(data);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message || 'Error al cambiar la contraseña' });
   }
 });
 

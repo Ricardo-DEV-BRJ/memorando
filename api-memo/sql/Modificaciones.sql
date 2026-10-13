@@ -61,6 +61,14 @@ CREATE TABLE IF NOT EXISTS vigilantes(
 
 ALTER TABLE memorando 
 ADD vig_salida INT,
+ADD fec_sal datetime,
 ADD vig_entrada INT,
-ADD rec_responsable INT;
+ADD fec_ent datetime,
+ADD rec_responsable INT,
+ADD fec_rec datetime;
+
+-- 11/10/2026
+-- Cambio de contraseña obligatorio (omitir las que ya existan en la base de datos)
+ALTER TABLE login ADD last_login DATETIME DEFAULT NULL;
+ALTER TABLE login ADD change_pass BOOLEAN DEFAULT 0;
 

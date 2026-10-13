@@ -110,7 +110,6 @@ const convertirADataUrlPng = (imagenSrc) => {
 
 export const generarMemo = async (datos) => {
   memoData = datos;
-  console.log(memoData)
   if (datos.equipos.length <= 6) {
     cantidadEquiposPorHoja = 5;
   } else if (datos.equipos.length > 6) {

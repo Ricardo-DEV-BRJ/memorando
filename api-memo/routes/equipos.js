@@ -25,7 +25,18 @@ router.get('/:id', verifyToken, async (req, res) => {
 
 router.post('/', verifyToken, async (req, res) => {
   try {
+    req.body.id_dep = req.id_dep
     const data = await controller.create(req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/lista-equipos', verifyToken, async (req, res) => {
+  try {
+    req.body.id_dep = req.id_dep
+    const data = await controller.listas(req.body);
     res.status(201).json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

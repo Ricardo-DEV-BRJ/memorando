@@ -18,6 +18,19 @@ const fonts = {
 
 const printer = new PdfPrinter(fonts);
 
+function formatFechaHora(fecha) {
+  if (!fecha) return '-'
+  const dateObj = new Date(fecha)
+  if (isNaN(dateObj.getTime())) return '-'
+  
+  const dia = String(dateObj.getDate()).padStart(2, '0')
+  const mes = String(dateObj.getMonth() + 1).padStart(2, '0')
+  const anio = dateObj.getFullYear()
+  const horas = String(dateObj.getHours()).padStart(2, '0')
+  const minutos = String(dateObj.getMinutes()).padStart(2, '0')
+  
+  return `${dia}/${mes}/${anio} ${horas}:${minutos}`
+}
 /**
  * Genera el Buffer del PDF del Memorando listo para Nodemailer
  * @param {Object} memoData - Datos dinámicos del memorando
@@ -30,6 +43,11 @@ function generarMemoBuffer(memoData, direccionUrl) {
       const b64Membrete = menbrete;
       const b64Footer = final;
       const b64Anulado = anulado;
+
+      const fec_sal = formatFechaHora(memoData.fec_sal);
+      const fec_ent = formatFechaHora(memoData.fec_ent);
+      const fec_rec = formatFechaHora(memoData.fec_rec);
+
       // 1. Mapear los equipos al formato que requiere pdfmake
       const equiposFormateados = (memoData.equipos || []).map(item => {
         if (typeof item === 'string') {
@@ -79,7 +97,7 @@ function generarMemoBuffer(memoData, direccionUrl) {
             {
               stack: [
                 {
-                  qr: direccionUrl + memoData.folio_me || 'nadota',
+                  qr: process.env.URL_MEMO + memoData.folio_me,
                   fit: 80,
                   alignment: 'center',
                   eccLevel: 'M'
@@ -96,7 +114,7 @@ function generarMemoBuffer(memoData, direccionUrl) {
               width: 70,
               height: 70
             },
-            ...(memoData.estado?.toLowerCase() === 'anulado' && b64Anulado
+            ...(memoData.estado?.toLowerCase() == 'anulado' && b64Anulado
               ? [{ image: b64Anulado, width: 250, height: 250, absolutePosition: { x: 200, y: 200 } }]
               : [])
           ];
@@ -147,7 +165,7 @@ function generarMemoBuffer(memoData, direccionUrl) {
             margin: [0, 0, 0, 20]
           },
           {
-            text: `${memoData.descripcion || ''} ${memoData.direccion.trim() ? ' que se desarrollara en' + memoData.nom_dir + ' ' + memoData.direccion : ''} `,
+            text: `${memoData.descripcion || ''} ${memoData.direccion.trim() ? ' que se desarrollara en ' + memoData.nom_dir + ' ' + memoData.direccion : ''} `,
             margin: [0, 0, 0, 15],
             alignment: 'justify',
             lineHeight: 1.5
@@ -157,14 +175,57 @@ function generarMemoBuffer(memoData, direccionUrl) {
           // Listas dinámicas de equipos
           ...listasDinamicas,
 
-          { text: 'Recibido por:', margin: [0, 10, 0, 40] },
-          { text: 'Atentamente,', alignment: 'center' },
-          { text: `${memoData.nombre} ${memoData.apellido}` || '', bold: true, alignment: 'center', margin: [0, 5, 0, 0] },
-          ...(memoData.firma
-            ? [{ image: memoData.firma, width: 100, alignment: 'center', margin: [0, 5, 0, 0] }]
-            : []
-          ),
-          { text: memoData.de || '', alignment: 'center' },
+          {
+            table: {
+              dontBreakRows: true,
+              widths: ['*', 210, '*'],
+              body: [[
+                {
+                  stack: [
+                    ...(memoData.nom_vig_sal ? [
+                      { text: 'Salida:', bold: true },
+                      { text: fec_sal || '---', bold: false, fontSize: 10 },
+                      memoData.firma_vig_sa ? { image: memoData.firma_vig_sa, width: 70 } : { text: '\n\n' },
+                      { text: memoData.nom_vig_sal, bold: true },
+                      { text: '' }
+                    ] : []),
+                    ...(Number(memoData.vigilancia) < 1 && memoData.nom_recp ? [
+                      { text: 'Recibido por:', bold: true },
+                      { text: fec_rec || '---', bold: false, fontSize: 10 },
+                      memoData.firma_recp ? { image: memoData.firma_recp, width: 70 } : { text: '\n\n' },
+                      { text: memoData.nom_recp, bold: true }
+                    ] : [])
+                  ],
+                  alignment: 'left',
+                  margin: [0, 0, 10, 0]
+                },
+                {
+                  stack: [
+                    { text: 'Atentamente', bold: true, alignment: 'center' },
+                    memoData.firma ? { image: memoData.firma, width: 70, alignment: 'center' } : { text: '\n\n' },
+                    { text: `${memoData.nombre} ${memoData.apellido}`, bold: true, alignment: 'center', margin: [0, 5, 0, 0] }, //[cite: 1]
+                    { text: memoData.dep_emisor, alignment: 'center' }, //[cite: 1]
+                  ],
+                  alignment: 'center',
+                  margin: [0, 0, 0, 0]
+                },
+                {
+                  stack: [
+                    ...(memoData.nom_vig_en ? [
+                      { text: 'Entrada:', bold: true },
+                      { text: fec_ent || '---', bold: false, fontSize: 10 },
+                      memoData.firma_vig_en ? { image: memoData.firma_vig_en, width: 70, alignment: 'right' } : { text: '\n\n' },
+                      { text: memoData.nom_vig_en, bold: true }
+                    ] : [])
+                  ],
+                  alignment: 'right',
+                  margin: [10, 0, 0, 0]
+                }
+              ]]
+            },
+            layout: 'noBorders',
+            margin: [0, 20, 0, 0]
+          },
         ]
       };
 

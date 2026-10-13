@@ -13,6 +13,7 @@ const responsables = require('./routes/responsables.js');
 const ubicaciones = require('./routes/ubicacion.js');
 const memo = require('./routes/memo.js');
 const correosRouter = require('./routes/correos.js');
+const departamentos = require('./routes/departamentos.js');
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use('/responsables', responsables);
 app.use('/ubicaciones', ubicaciones);
 app.use('/memorandos', memo);
 app.use('/correos', correosRouter);
+app.use('/departamentos', departamentos);
 
 app.use(function(req, res, next) {
   next(createError(404));

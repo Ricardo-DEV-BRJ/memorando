@@ -36,11 +36,30 @@ class equiposmodel {
 
   create(data) {
     return new Promise(async (resolve, reject) => {
-      const { nombre, serial, imagen, descripcion, estado } = data;
-      const valores = [nombre, serial, imagen, descripcion, estado];
-      const sql = 'INSERT INTO equipo (nombre, serial, imagen, descripcion, estado) VALUES (?,?,?,?,?)';
+      const { nombre, serial, imagen, descripcion, estado, id_dep } = data;
+      const valores = [nombre, serial, imagen, descripcion, estado, id_dep];
+      const sql = 'INSERT INTO equipo (nombre, serial, imagen, descripcion, estado, id_dep) VALUES (?,?,?,?,?,?)';
       try {
         await db.query(sql, valores);
+        resolve({ status: 201, data: [], message: 'Creado con exito' });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  listas(data) {
+    return new Promise(async (resolve, reject) => {
+      const { lista, id_dep } = data;
+      const equipos = JSON.parse(lista);
+      let items = [];
+      equipos.map(e => {
+        const item = Object.values(e);
+        items.push([ ...item, id_dep])
+      })
+      const sql = 'INSERT INTO equipo (nombre, serial, descripcion, estado, id_dep) VALUES ?';
+      try {
+        await db.query(sql, [items]);
         resolve({ status: 201, data: [], message: 'Creado con exito' });
       } catch (error) {
         reject(error);

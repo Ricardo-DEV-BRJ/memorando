@@ -83,15 +83,16 @@ class loginmodel {
 
   async authenticate(data) {
     return new Promise(async (resolve, reject) => {
-      const sqlLogin = 'SELECT clave, permisos, per_super AS super_admin FROM login WHERE cedula = ?';
+      const sqlLogin = 'SELECT clave, permisos, per_super AS super_admin, change_pass, last_login FROM login WHERE cedula = ?';
       const sqlUser = 'SELECT id, nombre, apellido, cedula, firma, id_dep, eliminado FROM responsable WHERE cedula = ?';
       try {
         const [rows] = await db.query(sqlLogin, [data.cedula]);
         if (rows.length === 0) {
           return reject({ message: 'Usuario no encontrado', status: 404 });
         }
-
+        
         const match = await bcrypt.compare(data.clave, rows[0].clave);
+        console.log(match)
         if (!match) {
           return reject({ message: 'Contraseña incorrecta', status: 401 });
         }
@@ -100,46 +101,78 @@ class loginmodel {
         if (userRows.length === 0) {
           return reject({ message: 'Responsable no encontrado', status: 404 });
         }
+        // Debe cambiar la contraseña si es su primer ingreso o si la base de datos lo indica.
+        // Se guarda en change_pass para que siga pendiente aunque cierre sesión sin cambiarla.
+        const change_pass = !rows[0].last_login || rows[0].change_pass ? 1 : 0;
         userRows[0].super_admin = rows[0].super_admin;
-        await db.query('UPDATE login SET last_login = CURRENT_TIMESTAMP WHERE cedula = ?', [data.cedula]);
-        resolve({ message: 'Autenticación exitosa', status: 200, responsable: userRows[0], permisos: rows[0].permisos });
+        userRows[0].change_pass = change_pass;
+        await db.query('UPDATE login SET last_login = CURRENT_TIMESTAMP, change_pass = ? WHERE cedula = ?', [change_pass, data.cedula]);
+        resolve({ message: 'Autenticación exitosa', status: 200, responsable: userRows[0], permisos: rows[0].permisos, change_pass });
       } catch (error) {
         reject({ message: 'Error al autenticar', status: 500, error: error.message });
       }
     });
   }
 
-  create(data) {
+  cambiarClave(id, data) {
     return new Promise(async (resolve, reject) => {
+      const sql = `
+        SELECT r.id, r.nombre, r.apellido, r.cedula, r.id_dep, l.clave, l.permisos, l.per_super AS super_admin
+        FROM login l
+        INNER JOIN responsable r ON r.id = l.id_responsable
+        WHERE l.id_responsable = ?
+      `;
       try {
-        await this.permisos(data.user_id);
-        const hashedPass = await bcrypt.hash(data.clave, saltRounds);
-        const usuario = 'SELECT * FROM login WHERE id_responsable = ?';
-        const [rowsUsuario] = await db.query(usuario, [data.id_responsable]);
-        if (rowsUsuario.length > 0) {
-          await this.update(rowsUsuario[0].id, { clave: hashedPass, id_responsable: data.user_id });
-          return resolve({ message: 'Contraseña actualizada con éxito', status: 201 });
+        if (!data.clave_actual || !data.clave_nueva) {
+          return reject({ message: 'Debe indicar la contraseña actual y la nueva', status: 400 });
         }
-        const sql = 'INSERT INTO login (id_responsable, cedula, clave, permisos) VALUES (?, ?, ?, ?)';
-        let per = 2
-        if (data.permisos) {
-          per = data.permisos
+        if (data.clave_nueva.length < 6) {
+          return reject({ message: 'La nueva contraseña debe tener mínimo 6 caracteres', status: 400 });
         }
-        const params = [data.id_responsable, data.cedula, hashedPass, per];
-        const [rows] = await db.query(sql, params);
-        resolve({ status: 201, message: 'Acceso creado con éxito', data: rows });
+        const [rows] = await db.query(sql, [id]);
+        if (rows.length === 0) {
+          return reject({ message: 'Usuario no encontrado', status: 404 });
+        }
+        const match = await bcrypt.compare(data.clave_actual, rows[0].clave);
+        if (!match) {
+          return reject({ message: 'La contraseña actual es incorrecta', status: 400 });
+        }
+        if (data.clave_actual === data.clave_nueva) {
+          return reject({ message: 'La nueva contraseña debe ser diferente a la actual', status: 400 });
+        }
+        const hashedPass = await bcrypt.hash(data.clave_nueva, saltRounds);
+        await db.query('UPDATE login SET clave = ?, change_pass = 0 WHERE id_responsable = ?', [hashedPass, id]);
+        const { clave, permisos, ...responsable } = rows[0];
+        resolve({ message: 'Contraseña actualizada con éxito', status: 200, responsable, permisos });
       } catch (error) {
-        reject(error);
+        reject({ message: 'Error al cambiar la contraseña', status: 500, error: error.message });
       }
     });
   }
+
+  // create(data) {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       await this.permisos(data.user_id);
+  //       const hashedPass = await bcrypt.hash(data.clave, saltRounds);
+  //       const usuario = 'SELECT * FROM login WHERE id_responsable = ?';
+  //       const [rowsUsuario] = await db.query(usuario, [data.id_responsable]);
+  //       if (rowsUsuario.length > 0) {
+  //       }
+  //       await this.update(data.id_responsable, { clave: data.clave });
+  //       return resolve({ message: 'Contraseña actualizada con éxito', status: 201 });
+  //     } catch (error) {
+  //       reject(error);
+  //     }
+  //   });
+  // }
 
   update(id, data) {
     return new Promise(async (resolve, reject) => {
       try {
         const hashedPass = await bcrypt.hash(data.clave, saltRounds);
-        const sql = 'UPDATE login SET clave = ? WHERE id_responsable = ?';
-        const [rows] = await db.query(sql, [hashedPass, id]);
+        const sql = 'UPDATE login SET clave = ?, change_pass = ? WHERE id_responsable = ?';
+        const [rows] = await db.query(sql, [hashedPass, data.change_pass, id]);
         resolve({ status: 200, message: 'Usuario actualizado con éxito', data: rows });
       } catch (error) {
         reject(error);

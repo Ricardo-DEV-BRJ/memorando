@@ -54,7 +54,7 @@ router.put('/:id', verifyToken, async (req, res) => {
 
 router.put('/recibir/:id', verifyToken, async (req, res) => {
   try {
-    const data = await controller.recibir(req.params.id);
+    const data = await controller.recibir(req.params.id, req.id_dep, req.user_id);
     res.status(data.status).json({ message: data.message, memos: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -64,6 +64,42 @@ router.put('/recibir/:id', verifyToken, async (req, res) => {
 router.put('/anular/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.anular(req.params.id);
+    res.status(data.status).json({ message: data.message, memos: data.data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/marcar_salida/:id', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.marcar_salida(req.params.id, req.user_id);
+    res.status(data.status).json({ message: data.message, memos: data.data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/marcar_entrada/:id', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.marcar_entrada(req.params.id, req.user_id);
+    res.status(data.status).json({ message: data.message, memos: data.data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/marcar_sitio/:id', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.marcar_sitio(req.params.id);
+    res.status(data.status).json({ message: data.message, memos: data.data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.put('/marcar_completado/:id', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.marcar_completado(req.params.id, req.user_id);
     res.status(data.status).json({ message: data.message, memos: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -6,6 +6,7 @@ const usuarios = ref([])
 const departamentos = ref([])
 const cargando = ref(false)
 const tokenUser = ref('')
+const lista = ref(null)
 // Tabla
 const responsablesFormRef = ref(null);
 const confirmDialogRef = ref(null);
@@ -182,6 +183,10 @@ function coloresRoles(id) {
   }
 }
 
+function abrirFormularioLista(tipo) {
+  lista.value.abrir(tipo);
+}
+
 onMounted(() => {
   cargaInicial()
   tokenUser.value = decodeToken()
@@ -191,14 +196,24 @@ onMounted(() => {
 <template>
   <v-container>
     <v-row align="center" class="mb-4">
-      <v-col>
+      <v-col cols="12">
         <h1 class="text-h5 font-weight-bold">Gestión de Usuarios</h1>
         <p class="text-body-2 text-medium-emphasis mt-1">
           Administra los accesos al sistema
         </p>
       </v-col>
       <v-col cols="12" sm="6" md="auto">
-        <v-btn color="primary" @click="abrirFormulario">Agregar Responsable</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-account-plus" @click="abrirFormulario">Agregar Responsable</v-btn>
+      </v-col>
+      <v-col cols="12" sm="6" md="auto">
+        <v-btn color="primary" prepend-icon="mdi-view-list" @click="abrirFormularioLista('departamentos')">
+          Agregar varios departamentos
+        </v-btn>
+      </v-col>
+      <v-col cols="12" sm="6" md="auto">
+        <v-btn color="primary" prepend-icon="mdi-account-group" @click="abrirFormularioLista('responsables')">
+          Agregar varios responsables
+        </v-btn>
       </v-col>
       <v-col cols="auto">
         <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" :loading="cargando" @click="cargaInicial">
@@ -325,6 +340,7 @@ onMounted(() => {
   <permisos-form ref="permisosFormRef" @guardado="cargaInicial" />
   <responsables-form ref="responsablesFormRef" @guardado="cargaInicial" :departamentos="departamentos" />
   <confirm-dialog ref="confirmDialogRef" @confirmar="eliminarResponsable" />
+  <listas-agregar-form ref="lista" @guardado="cargaInicial" />
   <!-- Modal Activar Responsable -->
   <v-dialog v-model="diagActivarUser" max-width="400px">
     <v-card class="pa-2 rounded-lg">
@@ -372,7 +388,7 @@ onMounted(() => {
                 :rules="[reglas.required]"></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0">
-              <v-checkbox v-model="userAcceso.change_pass" label="Solicitar cambio de contraseña al iniciar sesión" 
+              <v-checkbox v-model="userAcceso.change_pass" label="Solicitar cambio de contraseña al iniciar sesión"
                 color="primary" density="compact" :true-value="1" :false-value="0"></v-checkbox>
             </v-col>
           </v-row>

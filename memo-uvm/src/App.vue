@@ -20,3 +20,8 @@ const route = useRoute()
 const mostrarNavbar = computed(() => route.path !== '/login' && route.path !== '/cambiar-clave' && !route.path.startsWith('/verificacion'))
 </script>
 
+<style>
+.v-data-table-headers--mobile {
+  display: none !important;
+}
+</style>

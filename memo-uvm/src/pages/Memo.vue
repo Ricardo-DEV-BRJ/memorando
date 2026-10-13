@@ -147,7 +147,7 @@ function obtenerDatos() {
       pa_quien: dataMemo.id_depa_pa_quien,
       asunto: dataMemo.asunto,
       descripcion: dataMemo.descripcion,
-      vigilancia: dataMemo.vigilancia,
+      vigilancia: Boolean(dataMemo.vigilancia),
     }
     const idsGuardados = dataMemo.equipos.map(item => item.id)
     // Opción 1: Usando .some() (ideal si las listas son pequeñas o medianas)
