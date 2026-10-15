@@ -3,6 +3,18 @@ const model = new departamentoModel();
 
 class departamentoscontroller {
 
+  all(user_id) {
+    return new Promise((resolve, reject) => {
+      model.all(user_id)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
   create(data) {
     return new Promise((resolve, reject) => {
       model.create(data)

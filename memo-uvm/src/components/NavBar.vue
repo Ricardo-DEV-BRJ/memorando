@@ -17,6 +17,7 @@ const rutas = [
   { title: 'Crear Memo', path: '/memo', icon: 'mdi-file-document-edit-outline', iconActive: 'mdi-file-document-edit', permiso: 0 },
   { title: 'Memorandos', path: '/memorandos', icon: 'mdi-file-document-multiple-outline', iconActive: 'mdi-file-document-multiple', permiso: 0 },
   { title: 'Usuarios', path: '/usuarios', icon: 'mdi-account-group-outline', iconActive: 'mdi-account-group', permiso: 1 },
+  { title: 'Departamentos', path: '/departamentos', icon: 'mdi-account-group-outline', iconActive: 'mdi-account-group', superAdmin: 'Super administrador' },
 ]
 
 function isActive(path) {
@@ -89,6 +90,12 @@ function cerrarSesion() {
             {{ item.title }}
           </v-btn>
           <v-btn v-if="item.permiso == 1 && permiso == 1" :to="item.path"
+            :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
+            :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
+            class="text-none font-weight-medium rounded-lg px-4">
+            {{ item.title }}
+          </v-btn>
+          <v-btn v-if="item.superAdmin == 'Super administrador' && rol == 'Super administrador'" :to="item.path"
             :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
             :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
             class="text-none font-weight-medium rounded-lg px-4">

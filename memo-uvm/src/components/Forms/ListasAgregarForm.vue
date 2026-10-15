@@ -126,7 +126,8 @@ defineExpose({
               <v-file-input :label="`Excel de ${config.subtitle}`" @change="cargarLista"
                 accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
                 prepend-icon="mdi-file-excel" outlined dense
-                :rules="[v => v != null || 'Campo Requerido']"></v-file-input>
+                :rules="[v => v != null || 'Campo Requerido']">
+              </v-file-input>
             </v-col>
             <transition name="fade">
               <v-col cols="12" v-if="tableData.length">

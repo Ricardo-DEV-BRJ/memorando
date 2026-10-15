@@ -105,6 +105,51 @@ class responsablesModel {
     });
   }
 
+  createMultiple(data, id_log, user_departamento) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await this.permisos(id_log);
+      } catch (error) {
+        return reject(error);
+      }
+
+      const { lista } = data;
+      const responsable = JSON.parse(lista);
+      const sqlRespo = "INSERT INTO responsable (nombre, apellido, cedula, email_resp, id_dep) VALUES ?";
+      const valores = responsable.map(r => [r.nombre, r.apellido, String(r.cedula), r.email_resp, r.id_dep ? r.id_dep : user_departamento]);
+      console.log(valores)
+
+      // const valoresLogin = responsable.map(r => [r.id_responsable, r.cedula, r.clave, r.permisos, r.change_pass ? 1 : 0]);
+      // const hashedPass = await bcrypt.hash(data.clave, saltRounds);
+      // const sqlLogin = 'INSERT INTO login (id_responsable, cedula, clave, permisos, change_pass) VALUES (?, ?, ?, ?, ?)';
+      // let per = 2
+      // if (data.permisos) {
+      //   per = data.permisos
+      // }
+
+      const connection = await db.getConnection();
+      try {
+        await connection.beginTransaction();
+        const [result] = await connection.query(sqlRespo, [valores]);
+        const primerId = result.insertId;
+        const totalInsertados = result.affectedRows;
+        const idsGenerados = Array.from({ length: totalInsertados }, (_, index) => primerId + index);
+        console.log(idsGenerados)
+        // const id_responsable = result.insertId;
+        // const params = [id_responsable, data.cedula, hashedPass, per, data.change_pass ? 1 : 0];
+        // await connection.query(sqlLogin, params);
+        // await connection.commit();
+        await connection.rollback();
+        resolve({ status: 201, data: [], message: 'Creado con exito' });
+      } catch (error) {
+        await connection.rollback();
+        reject(error);
+      } finally {
+        connection.release();
+      }
+    });
+  }
+
   update(id, data, id_log) {
     return new Promise(async (resolve, reject) => {
       try {

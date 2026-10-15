@@ -14,6 +14,7 @@ declare module 'vue' {
     AppToast: typeof import('./components/AppToast.vue')['default']
     BotonTema: typeof import('./components/BotonTema.vue')['default']
     ConfirmDialog: typeof import('./components/ConfirmDialog.vue')['default']
+    DepartamentosForm: typeof import('./components/Forms/DepartamentosForm.vue')['default']
     Detalles: typeof import('./components/Modals/Detalles.vue')['default']
     EquiposForm: typeof import('./components/Forms/EquiposForm.vue')['default']
     EstadoMemo: typeof import('./components/Modals/EstadoMemo.vue')['default']

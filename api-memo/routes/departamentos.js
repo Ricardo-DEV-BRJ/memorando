@@ -5,6 +5,15 @@ const { verifyToken } = require('../middlewares/auth.middleware.js');
 const router = express.Router();
 const controller = new departamentosController();
 
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const data = await controller.all(req.user_id);
+    res.status(data.status).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/', verifyToken, async (req, res) => {
   try {
     const data = await controller.create(req.body);
@@ -26,7 +35,7 @@ router.post('/lista-departamentos', verifyToken, async (req, res) => {
 router.put('/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.update(req.params.id, req.body);
-    res.status(data.status).json({ message: data.message, equ: data.data });
+    res.status(data.status).json({ message: data.message, depa: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -35,7 +44,7 @@ router.put('/:id', verifyToken, async (req, res) => {
 router.delete('/:id', verifyToken, async (req, res) => {
   try {
     const data = await controller.delete(req.params.id);
-    res.status(data.status).json({ message: data.message, equ: data.data });
+    res.status(data.status).json({ message: data.message, depa: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

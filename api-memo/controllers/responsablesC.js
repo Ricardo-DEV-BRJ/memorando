@@ -40,6 +40,18 @@ class responsablesController {
     });
   }
 
+  createMultiple(data, id_log, user_departamento) {
+    return new Promise((resolve, reject) => {
+      model.createMultiple(data, id_log, user_departamento)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
   update(id, data, id_log) {
     return new Promise((resolve, reject) => {
       model.update(id, data, id_log)

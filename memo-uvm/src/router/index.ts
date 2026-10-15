@@ -14,6 +14,7 @@ import HistorialMemos from '@/pages/HistorialMemos.vue'
 import VerificacionMemos from '@/pages/VerificacionMemos.vue'
 import CambioClave from '@/pages/CambioClave.vue'
 import Perfil from '@/pages/Perfil.vue'
+import Departamentos from '@/pages/Departamentos.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       meta: { title: 'Usuarios', requiresAuth: true, adminUser: true }
     },
     {
+      path: '/departamentos',
+      component: Departamentos,
+      meta: { title: 'Departamentos', requiresAuth: true, superAdmin: true }
+    },
+    {
       path: '/memo',
       component: Memo,
       meta: { title: 'Crear Memorando', requiresAuth: true }
@@ -70,6 +76,7 @@ router.beforeEach((to) => {
   const token = getToken()
   const payload = decodeToken()
   const permiso = payload?.permisos
+  const superAdmin = payload?.super_admin
   const cambioClave = !!payload?.change_pass
   // Tiene token e intenta ir al login → redirigir al inicio
   if (to.meta.public && token) {
@@ -89,6 +96,10 @@ router.beforeEach((to) => {
   }
   // Si tiene permiso 0 y quiere ir a usuarios → redirigir al inicio
   if (to.meta.adminUser && permiso != 1) {
+    return '/'
+  }
+  // Solo super admin puede acceder 
+  if (to.meta.superAdmin && superAdmin != 1) {
     return '/'
   }
 })
