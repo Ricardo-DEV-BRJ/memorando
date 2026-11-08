@@ -148,22 +148,59 @@ class departamentosModel {
         if (!Array.isArray(departamentos)) {
           return reject(errorHttp(400, 'La lista de departamentos no es válida'));
         }
-        const items = departamentos
-          .map((fila) => {
-            // Si las columnas tienen otros nombres: el nombre es el primer valor que no es un correo
-            const valores = Object.values(fila).map((v) => String(v ?? '').trim()).filter(Boolean);
-            const nombre = valorColumna(fila, ['nombre_dep', 'departamento', 'nombre'])
-              ?? valores.find((v) => !v.includes('@'));
-            const email = valorColumna(fila, ['email', 'correo', 'correo electrónico', 'correo electronico'])
-              ?? valores.find((v) => /.+@.+\..+/.test(v));
-            return [String(nombre ?? '').trim(), String(email ?? '').trim() || null];
-          })
-          .filter(([nombre]) => nombre);
-        if (items.length === 0) {
+        const errores = [];
+        const items = [];
+        const filaPorNombre = new Map();
+        departamentos.forEach((fila, i) => {
+          const numero = i + 2; // fila del Excel (la 1 es el encabezado)
+          // Si las columnas tienen otros nombres: el nombre es el primer valor que no es un correo
+          const valores = Object.values(fila || {}).map((v) => String(v ?? '').trim()).filter(Boolean);
+          if (valores.length === 0) return; // fila vacía
+          const nombre = String(valorColumna(fila, ['nombre_dep', 'departamento', 'nombre'])
+            ?? valores.find((v) => !v.includes('@')) ?? '').trim();
+          const email = String(valorColumna(fila, ['email', 'correo', 'correo electrónico', 'correo electronico'])
+            ?? valores.find((v) => /.+@.+\..+/.test(v)) ?? '').trim();
+          if (!nombre) {
+            errores.push(`Fila ${numero}: falta el nombre del departamento`);
+            return;
+          }
+          if (nombre.length > 100) {
+            errores.push(`Fila ${numero}: el nombre no puede superar los 100 caracteres`);
+          }
+          if (email && !/.+@.+\..+/.test(email)) {
+            errores.push(`Fila ${numero}: el correo "${email}" no es válido`);
+          }
+          const clave = nombre.toLowerCase();
+          if (filaPorNombre.has(clave)) {
+            errores.push(`Fila ${numero}: "${nombre}" está repetido (fila ${filaPorNombre.get(clave)})`);
+          } else {
+            filaPorNombre.set(clave, numero);
+          }
+          items.push([nombre, email || null]);
+        });
+        if (items.length === 0 && errores.length === 0) {
           return reject(errorHttp(400, 'La lista no contiene departamentos'));
         }
+        // Departamentos vigentes que ya tienen ese nombre
+        const nombres = [...filaPorNombre.keys()];
+        if (nombres.length) {
+          const [existentes] = await db.query(
+            'SELECT nombre_dep FROM departamentos WHERE dep_eli = 1 AND LOWER(TRIM(nombre_dep)) IN (?)', [nombres]
+          );
+          existentes.forEach((d) => {
+            const clave = d.nombre_dep.trim().toLowerCase();
+            errores.push(`Fila ${filaPorNombre.get(clave)}: ya existe un departamento llamado "${d.nombre_dep}"`);
+          });
+        }
+        if (errores.length) {
+          // Ordenados por fila para corregir el archivo de arriba hacia abajo
+        errores.sort((a, b) => Number(a.match(/\d+/)) - Number(b.match(/\d+/)));
+        const resumen = errores.length === 1 ? 'Hay 1 error' : `Hay ${errores.length} errores`;
+          return reject({ ...errorHttp(400, `No se agregó ningún departamento. ${resumen} en el archivo`), errores });
+        }
         await db.query('INSERT INTO departamentos (nombre_dep, email) VALUES ?', [items]);
-        resolve({ status: 201, data: [], message: 'Departamentos creados con éxito' });
+        const total = items.length;
+        resolve({ status: 201, data: [], message: `${total} ${total === 1 ? 'departamento agregado' : 'departamentos agregados'} con éxito` });
       } catch (error) {
         reject(error);
       }

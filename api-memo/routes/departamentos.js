@@ -11,7 +11,7 @@ router.use(verifyToken, soloSuperAdmin);
 
 function responderError(res, error) {
   const mensaje = error.message || 'Error al procesar la solicitud';
-  res.status(error.status || 500).json({ message: mensaje, error: mensaje });
+  res.status(error.status || 500).json({ message: mensaje, error: mensaje, errores: error.errores });
 }
 
 router.get('/', async (req, res) => {

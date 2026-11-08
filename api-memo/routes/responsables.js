@@ -56,7 +56,7 @@ router.post('/lista-personal', verifyToken, async (req, res) => {
     const data = await controller.createMultiple(req.body, req.user_id, req.id_dep);
     res.status(201).json(data);
   } catch (error) {
-    res.status(error.status || 500).json({ message: error.message, error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message, errores: error.errores });
   }
 });
 

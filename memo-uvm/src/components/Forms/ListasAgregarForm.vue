@@ -8,6 +8,9 @@ const tipo = ref('equipos')
 const tableData = ref([])
 const tableHeaders = ref([])
 const cargandoLista = ref(false)
+const guardando = ref(false)
+// Errores por fila devueltos por el servidor (no se guarda nada si hay alguno)
+const erroresArchivo = ref([])
 
 const config = computed(() => {
   if (tipo.value === 'equipos') {
@@ -23,13 +26,15 @@ const config = computed(() => {
       subtitle: 'Personal del departamento',
       icon: 'mdi-account-group-outline',
       endpoint: 'responsables/lista-personal',
+      plantilla: '/plantillas/plantilla_usuarios.xlsx',
     }
   } else if (tipo.value === 'departamentos') {
     return {
       title: 'Agregar lista de departamentos',
       subtitle: 'Departamentos',
-      icon: 'mdi-account-group-outline',
+      icon: 'mdi-office-building-outline',
       endpoint: 'departamentos/lista-departamentos',
+      plantilla: '/plantillas/plantilla_departamentos.xlsx',
     }
   } else {
     return {
@@ -42,6 +47,7 @@ const config = computed(() => {
 })
 
 async function cargarLista(event) {
+  erroresArchivo.value = []
   cargandoLista.value = true
   await obtenerDatos(event)
     .then(res => {
@@ -71,6 +77,7 @@ function abrir(type) {
 function cancelar() {
   tableData.value = []
   tableHeaders.value = []
+  erroresArchivo.value = []
   cerrar();
 }
 
@@ -78,6 +85,8 @@ async function agregar() {
   const obj = {
     lista: JSON.stringify(tableData.value)
   }
+  erroresArchivo.value = []
+  guardando.value = true
   apiCall(config.value.endpoint, obj, 'POST')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
@@ -90,7 +99,11 @@ async function agregar() {
     })
     .catch((err) => {
       console.error(err);
+      erroresArchivo.value = err.response?.data?.errores || []
       toast.error(err.response?.data?.message || 'Error al conectar con el servidor');
+    })
+    .finally(() => {
+      guardando.value = false
     });
 }
 
@@ -113,11 +126,18 @@ defineExpose({
           </v-col>
         </v-row>
       </v-card-title>
-      <v-card-subtitle>
-        <v-icon>
-          {{ config.icon }}
-        </v-icon>
-        {{ config.subtitle }}
+      <v-card-subtitle class="d-flex flex-wrap align-center ga-2">
+        <span>
+          <v-icon>
+            {{ config.icon }}
+          </v-icon>
+          {{ config.subtitle }}
+        </span>
+        <v-spacer />
+        <v-btn v-if="config.plantilla" :href="config.plantilla" download variant="text" color="primary" size="small"
+          prepend-icon="mdi-microsoft-excel" class="text-none">
+          Descargar plantilla
+        </v-btn>
       </v-card-subtitle>
       <v-card-text>
         <v-form v-model="validado" lazy-validation>
@@ -128,6 +148,14 @@ defineExpose({
                 prepend-icon="mdi-file-excel" outlined dense
                 :rules="[v => v != null || 'Campo Requerido']">
               </v-file-input>
+            </v-col>
+            <v-col cols="12" v-if="erroresArchivo.length">
+              <v-alert type="error" variant="tonal" density="compact" rounded="lg"
+                :title="`Corrige el archivo (${erroresArchivo.length} ${erroresArchivo.length === 1 ? 'error' : 'errores'})`">
+                <ul class="errores-archivo mt-1">
+                  <li v-for="(e, i) in erroresArchivo" :key="i">{{ e }}</li>
+                </ul>
+              </v-alert>
             </v-col>
             <transition name="fade">
               <v-col cols="12" v-if="tableData.length">
@@ -142,7 +170,7 @@ defineExpose({
       <v-card-actions class="justify-end">
         <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" @click="cancelar">Cancelar</v-btn>
         <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar"
-          :disabled="!validado">Agregar</v-btn>
+          :disabled="!validado || !tableData.length" :loading="guardando">Agregar</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -150,6 +178,12 @@ defineExpose({
 </template>
 
 <style scoped>
+.errores-archivo {
+  max-height: 180px;
+  overflow-y: auto;
+  padding-left: 18px;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity .4s ease;

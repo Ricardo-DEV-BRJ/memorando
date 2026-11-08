@@ -2,6 +2,39 @@ const db = require('../database/db.js');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+// ---- Carga masiva de personal desde Excel/CSV ----
+const MAX_FILAS = 500;
+const ROLES = { responsable: 2, administrador: 1, admin: 1, becado: 0, '2': 2, '1': 1, '0': 0 };
+
+// "Cédula", "CEDULA " y "cedula" se tratan igual: minúsculas, sin acentos ni símbolos
+function normalizar(texto) {
+  return String(texto ?? '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
+// Nombres de columna aceptados para cada campo (ya normalizados)
+const COLUMNAS = {
+  nombre: ['nombre', 'nombres'],
+  apellido: ['apellido', 'apellidos'],
+  cedula: ['cedula', 'ci', 'documento'],
+  email_resp: ['correo', 'email', 'email_resp', 'correo_institucional', 'correo_electronico'],
+  rol: ['rol', 'permisos', 'permiso'],
+  departamento: ['departamento', 'id_dep', 'nombre_dep'],
+  clave: ['clave_inicial', 'clave', 'contrasena', 'contrasena_inicial', 'password'],
+};
+
+function leerFila(fila) {
+  const valores = {};
+  for (const [columna, valor] of Object.entries(fila || {})) {
+    valores[normalizar(columna)] = String(valor ?? '').trim();
+  }
+  const resultado = {};
+  for (const [campo, alias] of Object.entries(COLUMNAS)) {
+    resultado[campo] = alias.map((a) => valores[a]).find((v) => v) || '';
+  }
+  return resultado;
+}
+
 class responsablesModel {
 
   // Devuelve el rol vigente del usuario logueado: { superAdmin, id_dep }
@@ -132,42 +165,122 @@ class responsablesModel {
     });
   }
 
+  // Carga masiva: se valida todo el archivo y se guarda todo o nada.
+  // Cada usuario recibe acceso al sistema y debe cambiar su contraseña al primer ingreso.
   createMultiple(data, id_log, user_departamento) {
     return new Promise(async (resolve, reject) => {
+      let rol;
       try {
-        await this.permisos(id_log);
+        rol = await this.permisos(id_log);
       } catch (error) {
         return reject(error);
       }
 
-      const { lista } = data;
-      const responsable = JSON.parse(lista);
-      const sqlRespo = "INSERT INTO responsable (nombre, apellido, cedula, email_resp, id_dep) VALUES ?";
-      const valores = responsable.map(r => [r.nombre, r.apellido, String(r.cedula), r.email_resp, r.id_dep ? r.id_dep : user_departamento]);
-      console.log(valores)
+      let filas;
+      try {
+        filas = JSON.parse(data.lista);
+      } catch {
+        return reject({ status: 400, message: 'La lista de personal no es válida' });
+      }
+      if (!Array.isArray(filas) || filas.length === 0) {
+        return reject({ status: 400, message: 'La lista no contiene personal' });
+      }
+      if (filas.length > MAX_FILAS) {
+        return reject({ status: 400, message: `El archivo no puede tener más de ${MAX_FILAS} usuarios` });
+      }
 
-      // const valoresLogin = responsable.map(r => [r.id_responsable, r.cedula, r.clave, r.permisos, r.change_pass ? 1 : 0]);
-      // const hashedPass = await bcrypt.hash(data.clave, saltRounds);
-      // const sqlLogin = 'INSERT INTO login (id_responsable, cedula, clave, permisos, change_pass) VALUES (?, ?, ?, ?, ?)';
-      // let per = 2
-      // if (data.permisos) {
-      //   per = data.permisos
-      // }
+      // Solo el superadministrador elige el departamento; el administrador agrega personal a su departamento
+      const departamentoAdmin = rol.id_dep ?? user_departamento;
+      const errores = [];
+      const usuarios = [];
+      const filaPorCedula = new Map();
+
+      try {
+        const [departamentos] = await db.query('SELECT id_dep, nombre_dep FROM departamentos WHERE dep_eli = 1');
+        const depPorNombre = new Map(departamentos.map((d) => [normalizar(d.nombre_dep), d.id_dep]));
+        const depPorId = new Map(departamentos.map((d) => [String(d.id_dep), d.id_dep]));
+
+        filas.forEach((fila, i) => {
+          const numero = i + 2; // fila del Excel (la 1 es el encabezado)
+          const r = leerFila(fila);
+          if (!r.nombre && !r.apellido && !r.cedula && !r.email_resp) return; // fila vacía
+
+          const faltan = [['nombre', 'nombre'], ['apellido', 'apellido'], ['cedula', 'cédula'], ['email_resp', 'correo']]
+            .filter(([campo]) => !r[campo]).map(([, etiqueta]) => etiqueta);
+          if (faltan.length) {
+            errores.push(`Fila ${numero}: falta ${faltan.join(', ')}`);
+            return;
+          }
+
+          const cedula = r.cedula.replace(/^[VvEe]\s*-?\s*/, '').replace(/[.\s]/g, '');
+          if (!/^\d+$/.test(cedula)) {
+            errores.push(`Fila ${numero}: la cédula "${r.cedula}" solo debe tener números`);
+          } else if (filaPorCedula.has(cedula)) {
+            errores.push(`Fila ${numero}: la cédula ${cedula} está repetida (fila ${filaPorCedula.get(cedula)})`);
+          } else {
+            filaPorCedula.set(cedula, numero);
+          }
+
+          if (!/.+@.+\..+/.test(r.email_resp)) {
+            errores.push(`Fila ${numero}: el correo "${r.email_resp}" no es válido`);
+          }
+
+          const permisos = r.rol ? ROLES[normalizar(r.rol)] : 2;
+          if (permisos === undefined) {
+            errores.push(`Fila ${numero}: el rol "${r.rol}" no existe (usa Responsable, Administrador o Becado)`);
+          }
+
+          let id_dep = departamentoAdmin;
+          if (rol.superAdmin && r.departamento) {
+            id_dep = depPorId.get(r.departamento) ?? depPorNombre.get(normalizar(r.departamento));
+            if (!id_dep) {
+              errores.push(`Fila ${numero}: el departamento "${r.departamento}" no existe`);
+            }
+          }
+
+          usuarios.push({ numero, nombre: r.nombre, apellido: r.apellido, cedula, email_resp: r.email_resp, permisos, id_dep, clave: r.clave });
+        });
+
+        if (usuarios.length === 0 && errores.length === 0) {
+          return reject({ status: 400, message: 'La lista no contiene personal' });
+        }
+
+        // Cédulas que ya existen en el sistema
+        const cedulas = [...filaPorCedula.keys()];
+        if (cedulas.length) {
+          const [existentes] = await db.query(
+            'SELECT cedula FROM responsable WHERE cedula IN (?) UNION SELECT cedula FROM login WHERE cedula IN (?)',
+            [cedulas, cedulas]
+          );
+          existentes.forEach((e) => {
+            errores.push(`Fila ${filaPorCedula.get(String(e.cedula))}: la cédula ${e.cedula} ya está registrada`);
+          });
+        }
+      } catch (error) {
+        return reject(error);
+      }
+
+      if (errores.length) {
+        // Ordenados por fila para corregir el archivo de arriba hacia abajo
+        errores.sort((a, b) => Number(a.match(/\d+/)) - Number(b.match(/\d+/)));
+        const resumen = errores.length === 1 ? 'Hay 1 error' : `Hay ${errores.length} errores`;
+        return reject({ status: 400, message: `No se agregó ningún usuario. ${resumen} en el archivo`, errores });
+      }
 
       const connection = await db.getConnection();
       try {
+        // Si no se indica una clave inicial, la contraseña es la cédula
+        const claves = await Promise.all(usuarios.map((u) => bcrypt.hash(u.clave || u.cedula, saltRounds)));
         await connection.beginTransaction();
-        const [result] = await connection.query(sqlRespo, [valores]);
-        const primerId = result.insertId;
-        const totalInsertados = result.affectedRows;
-        const idsGenerados = Array.from({ length: totalInsertados }, (_, index) => primerId + index);
-        console.log(idsGenerados)
-        // const id_responsable = result.insertId;
-        // const params = [id_responsable, data.cedula, hashedPass, per, data.change_pass ? 1 : 0];
-        // await connection.query(sqlLogin, params);
-        // await connection.commit();
-        await connection.rollback();
-        resolve({ status: 201, data: [], message: 'Creado con exito' });
+        const sqlRespo = 'INSERT INTO responsable (nombre, apellido, cedula, email_resp, id_dep) VALUES (?,?,?,?,?)';
+        const sqlLogin = 'INSERT INTO login (id_responsable, cedula, clave, permisos, change_pass) VALUES (?, ?, ?, ?, 1)';
+        for (const [i, u] of usuarios.entries()) {
+          const [result] = await connection.query(sqlRespo, [u.nombre, u.apellido, u.cedula, u.email_resp, u.id_dep]);
+          await connection.query(sqlLogin, [result.insertId, u.cedula, claves[i], u.permisos]);
+        }
+        await connection.commit();
+        const total = usuarios.length;
+        resolve({ status: 201, data: [], message: `${total} ${total === 1 ? 'usuario agregado' : 'usuarios agregados'} con éxito` });
       } catch (error) {
         await connection.rollback();
         reject(error);
