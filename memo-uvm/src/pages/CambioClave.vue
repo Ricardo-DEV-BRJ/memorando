@@ -38,7 +38,7 @@ async function cambiarClave() {
       // El backend devuelve un token nuevo sin el cambio de contraseña pendiente
       const token = res.data.token
       if (token) {
-        document.cookie = `token=${token}; path=/`
+        guardarToken(token)
       }
       toast.success(res.data.message || 'Contraseña actualizada con éxito')
       router.push('/')
@@ -58,7 +58,7 @@ async function cambiarClave() {
 }
 
 function cerrarSesion() {
-  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+  borrarToken()
   router.push('/login')
 }
 </script>

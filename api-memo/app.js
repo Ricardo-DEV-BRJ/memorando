@@ -32,7 +32,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
   origin: [corsEndpoint],
   methods: 'GET,POST,PUT,DELETE',
-  credentials: true
+  credentials: true,
+  // El navegador guarda la respuesta del preflight (OPTIONS) y no lo repite en cada petición con token
+  maxAge: 7200
 }));
 
 app.use('/', indexRouter);

@@ -10,6 +10,7 @@ const router = useRouter()
 const { mdAndUp } = useDisplay()
 const { usuario, nombreCompleto, nombreCorto, iniciales, rol, refrescarSesion } = useSesion()
 const permiso = computed(() => usuario.value?.permisos)
+const esSuperAdmin = computed(() => usuario.value?.super_admin == 1)
 const drawer = ref(false)
 
 const rutas = [
@@ -17,8 +18,15 @@ const rutas = [
   { title: 'Crear Memo', path: '/memo', icon: 'mdi-file-document-edit-outline', iconActive: 'mdi-file-document-edit', permiso: 0 },
   { title: 'Memorandos', path: '/memorandos', icon: 'mdi-file-document-multiple-outline', iconActive: 'mdi-file-document-multiple', permiso: 0 },
   { title: 'Usuarios', path: '/usuarios', icon: 'mdi-account-group-outline', iconActive: 'mdi-account-group', permiso: 1 },
-  { title: 'Departamentos', path: '/departamentos', icon: 'mdi-account-group-outline', iconActive: 'mdi-account-group', superAdmin: 'Super administrador' },
+  { title: 'Departamentos', path: '/departamentos', icon: 'mdi-office-building-outline', iconActive: 'mdi-office-building', superAdmin: true },
 ]
+
+// Cada usuario solo ve las opciones permitidas por su rol (escritorio y menú móvil)
+const rutasVisibles = computed(() => rutas.filter((item) => {
+  if (item.superAdmin) return esSuperAdmin.value
+  if (item.permiso == 1) return permiso.value == 1
+  return true
+}))
 
 function isActive(path) {
   return route.path === path
@@ -31,7 +39,7 @@ onMounted(() => {
 
 function clearTokenCookie() {
   // 1. Borrado básico en la ruta raíz
-  document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  borrarToken();
   document.cookie = "permiso=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 
   // 2. Borrado especificado para el dominio principal (si compartes cookies entre subdominios)
@@ -40,25 +48,16 @@ function clearTokenCookie() {
 }
 
 function cerrarSesion() {
-  // clearTokenCookie();
-  apiCall('login/logout', {}, 'POST')
-    .then((res) => {
-      if (res.status === 200 || res.status === 201) {
-        toast.info('Sesión cerrada con éxito')
-        router.push('/login')
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      toast.error(err.response?.data?.message);
-    });
+  // La sesión se cierra en el navegador de inmediato, sin esperar la respuesta del servidor
+  clearTokenCookie();
   localStorage.clear();
   sessionStorage.clear();
-
-  // 3. Redirigir al login y recargar la página para limpiar el estado de la app en memoria
-  // router.push('/login').then(() => {
-  //   window.location.reload();
-  // });
+  refrescarSesion();
+  drawer.value = false;
+  router.push('/login');
+  toast.info('Sesión cerrada con éxito');
+  // Se avisa al backend en segundo plano
+  apiCall('login/logout', {}, 'POST').catch((err) => console.error(err));
 }
 </script>
 
@@ -82,26 +81,12 @@ function cerrarSesion() {
 
       <!-- Navegación para pantallas medianas y grandes -->
       <div v-if="mdAndUp" class="d-flex align-center ga-1">
-        <template v-for="item in rutas" :key="item.path">
-          <v-btn v-if="item.permiso == 0" :to="item.path"
-            :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
-            :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
-            class="text-none font-weight-medium rounded-lg px-4">
-            {{ item.title }}
-          </v-btn>
-          <v-btn v-if="item.permiso == 1 && permiso == 1" :to="item.path"
-            :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
-            :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
-            class="text-none font-weight-medium rounded-lg px-4">
-            {{ item.title }}
-          </v-btn>
-          <v-btn v-if="item.superAdmin == 'Super administrador' && rol == 'Super administrador'" :to="item.path"
-            :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
-            :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
-            class="text-none font-weight-medium rounded-lg px-4">
-            {{ item.title }}
-          </v-btn>
-        </template>
+        <v-btn v-for="item in rutasVisibles" :key="item.path" :to="item.path"
+          :prepend-icon="isActive(item.path) ? item.iconActive : item.icon"
+          :color="isActive(item.path) ? 'primary' : undefined" :variant="isActive(item.path) ? 'tonal' : 'text'"
+          class="text-none font-weight-medium rounded-lg px-4">
+          {{ item.title }}
+        </v-btn>
       </div>
 
       <v-spacer />
@@ -149,7 +134,7 @@ function cerrarSesion() {
       <v-divider />
 
       <v-list density="compact" nav class="pa-2">
-        <v-list-item v-for="item in rutas" :key="item.path" :to="item.path"
+        <v-list-item v-for="item in rutasVisibles" :key="item.path" :to="item.path"
           :prepend-icon="isActive(item.path) ? item.iconActive : item.icon" :title="item.title"
           :active="isActive(item.path)" color="primary" rounded="lg" @click="drawer = false" />
         <v-list-item to="/perfil" :prepend-icon="isActive('/perfil') ? 'mdi-account-circle' : 'mdi-account-circle-outline'"

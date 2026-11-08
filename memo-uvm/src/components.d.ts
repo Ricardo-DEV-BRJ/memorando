@@ -19,8 +19,6 @@ declare module 'vue' {
     EquiposForm: typeof import('./components/Forms/EquiposForm.vue')['default']
     EstadoMemo: typeof import('./components/Modals/EstadoMemo.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
-    ListaDepartamentos: typeof import('./components/Forms/ListaDepartamentos.vue')['default']
-    ListaEquiposForm: typeof import('./components/Forms/ListaEquiposForm.vue')['default']
     ListasAgregarForm: typeof import('./components/Forms/ListasAgregarForm.vue')['default']
     ModalImagen: typeof import('./components/ModalImagen.vue')['default']
     NavBar: typeof import('./components/NavBar.vue')['default']

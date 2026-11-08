@@ -25,7 +25,7 @@ async function iniciarSesion() {
     if (res.status === 200 || res.status === 201) {
       const token = res.data.token
       if (token) {
-        document.cookie = `token=${token}; path=/`
+        guardarToken(token)
       }
       toast.success(res.data.message || '¡Bienvenido!')
       if (res.data.change_pass) {

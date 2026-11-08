@@ -6,15 +6,10 @@
 
 // Composables
 import { createRouter, createWebHistory } from 'vue-router'
-import Inicio from '@/pages/Inicio.vue'
+// El login se carga junto con la app porque es la primera vista sin sesión.
+// El resto de vistas se cargan bajo demanda para que la carga inicial sea liviana
+// (pdfmake, xlsx y las imágenes de los memorandos solo se descargan en las vistas que los usan).
 import Login from '@/pages/Login.vue'
-import Usuarios from '@/pages/Usuarios.vue'
-import Memo from '@/pages/Memo.vue'
-import HistorialMemos from '@/pages/HistorialMemos.vue'
-import VerificacionMemos from '@/pages/VerificacionMemos.vue'
-import CambioClave from '@/pages/CambioClave.vue'
-import Perfil from '@/pages/Perfil.vue'
-import Departamentos from '@/pages/Departamentos.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,55 +21,52 @@ const router = createRouter({
     },
     {
       path: '/verificacion/:folio',
-      component: VerificacionMemos,
+      component: () => import('@/pages/VerificacionMemos.vue'),
       meta: { title: 'Verificación de Memorando', requiresAuth: false}
     },
     {
       path: '/cambiar-clave',
-      component: CambioClave,
+      component: () => import('@/pages/CambioClave.vue'),
       meta: { title: 'Cambiar Contraseña', requiresAuth: true }
     },
     {
       path: '/',
-      component: Inicio,
+      component: () => import('@/pages/Inicio.vue'),
       meta: { title: 'Inicio', requiresAuth: true }
     },
     {
       path: '/usuarios',
-      component: Usuarios,
+      component: () => import('@/pages/Usuarios.vue'),
       meta: { title: 'Usuarios', requiresAuth: true, adminUser: true }
     },
     {
       path: '/departamentos',
-      component: Departamentos,
+      component: () => import('@/pages/Departamentos.vue'),
       meta: { title: 'Departamentos', requiresAuth: true, superAdmin: true }
     },
     {
       path: '/memo',
-      component: Memo,
+      component: () => import('@/pages/Memo.vue'),
       meta: { title: 'Crear Memorando', requiresAuth: true }
     },
     {
       path: '/memorandos',
-      component: HistorialMemos,
+      component: () => import('@/pages/HistorialMemos.vue'),
       meta: { title: 'Historial de Memorandos', requiresAuth: true }
     },
     {
       path: '/perfil',
-      component: Perfil,
+      component: () => import('@/pages/Perfil.vue'),
       meta: { title: 'Mi Perfil', requiresAuth: true }
     },
   ],
 })
 
-function getToken(): string | null {
-  const cookie = document.cookie.split(';').find(row => row.trim().startsWith('token='))
-  return cookie ? cookie.split('=')[1] : null
-}
-
 router.beforeEach((to) => {
-  const token = getToken()
-  const payload = decodeToken()
+  // Un token vencido o dañado se elimina aquí mismo, sin consultar al backend,
+  // así se va directo al login en lugar de cargar vistas cuyas peticiones van a fallar.
+  const token = tokenVigente()
+  const payload = token ? decodeToken(token) : null
   const permiso = payload?.permisos
   const superAdmin = payload?.super_admin
   const cambioClave = !!payload?.change_pass
@@ -98,10 +90,26 @@ router.beforeEach((to) => {
   if (to.meta.adminUser && permiso != 1) {
     return '/'
   }
-  // Solo super admin puede acceder 
+  // Solo super admin puede acceder
   if (to.meta.superAdmin && superAdmin != 1) {
     return '/'
   }
+})
+
+// Si se publica una nueva versión mientras el usuario tiene la página abierta, los archivos
+// de las vistas anteriores ya no existen: se recarga para obtener la versión nueva.
+router.onError((error, to) => {
+  const mensaje = String(error?.message || '')
+  if (!/dynamically imported module|Importing a module script failed/i.test(mensaje)) return
+  // Solo se recarga una vez por ruta para no entrar en un ciclo si el servidor no responde
+  const clave = `recarga:${to.fullPath}`
+  try {
+    if (sessionStorage.getItem(clave)) return
+    sessionStorage.setItem(clave, '1')
+  } catch {
+    // Sin acceso a sessionStorage: se intenta la recarga igualmente
+  }
+  window.location.assign(to.fullPath)
 })
 
 export default router

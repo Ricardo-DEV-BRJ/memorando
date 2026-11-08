@@ -3,9 +3,9 @@ const model = new departamentoModel();
 
 class departamentoscontroller {
 
-  all(user_id) {
+  all() {
     return new Promise((resolve, reject) => {
-      model.all(user_id)
+      model.all()
         .then((res) => {
           resolve(res);
         })

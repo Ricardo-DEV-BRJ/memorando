@@ -30,7 +30,8 @@ class loginmodel {
           INNER JOIN departamentos d ON d.id_dep = u.id_dep
           ${whereClause}
         `;
-        const sql2 = `SELECT * FROM departamentos`
+        // Solo departamentos vigentes para asignar usuarios
+        const sql2 = `SELECT id_dep, nombre_dep, email FROM departamentos WHERE dep_eli = 1 ORDER BY nombre_dep ASC`
         const [rows] = await db.query(sql, superAdmin ? [] : [user_id]);
         const [depa] = await db.query(sql2);
         resolve({ status: 200, message: 'Usuarios obtenidos con éxito', data: rows, depa: depa });

@@ -90,7 +90,7 @@ async function agregar() {
     })
     .catch((err) => {
       console.error(err);
-      toast.error('Error al conectar con el servidor');
+      toast.error(err.response?.data?.message || 'Error al conectar con el servidor');
     });
 }
 

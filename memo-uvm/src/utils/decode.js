@@ -32,3 +32,36 @@ export function isTokenExpired(token = getToken()) {
   if (!payload.exp) return false
   return payload.exp * 1000 < Date.now()
 }
+
+function atributosCookie() {
+  const seguro = window.location.protocol === 'https:' ? '; Secure' : ''
+  return `; path=/; SameSite=Lax${seguro}`
+}
+
+// Guarda el token en la cookie con la misma vigencia del JWT:
+// cuando el token expira el navegador elimina la cookie por sí solo.
+export function guardarToken(token) {
+  if (!token) return
+  const exp = decodeToken(token)?.exp
+  const segundos = exp ? Math.floor(exp - Date.now() / 1000) : 0
+  const vigencia = segundos > 0 ? `; max-age=${segundos}` : ''
+  document.cookie = `token=${token}${vigencia}${atributosCookie()}`
+}
+
+export function borrarToken() {
+  document.cookie = `token=; max-age=0${atributosCookie()}`
+  // Cookies antiguas guardadas sin atributos
+  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+}
+
+// Devuelve el token solo si se puede leer y no ha expirado.
+// Si la cookie quedó con un token vencido o dañado se elimina, así no se hacen peticiones que el backend va a rechazar.
+export function tokenVigente() {
+  const token = getToken()
+  if (!token) return null
+  if (isTokenExpired(token)) {
+    borrarToken()
+    return null
+  }
+  return token
+}

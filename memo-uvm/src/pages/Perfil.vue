@@ -99,7 +99,7 @@ async function guardar() {
       if (res.status === 200) {
         // El backend devuelve un token nuevo con el nombre actualizado
         if (res.data.token) {
-          document.cookie = `token=${res.data.token}; path=/`
+          guardarToken(res.data.token)
           refrescarSesion()
         }
         toast.success(res.data.message || 'Perfil actualizado con éxito')

@@ -205,7 +205,8 @@ onMounted(() => {
       <v-col cols="12" sm="6" md="auto">
         <v-btn color="primary" prepend-icon="mdi-account-plus" @click="abrirFormulario">Agregar Responsable</v-btn>
       </v-col>
-      <v-col cols="12" sm="6" md="auto">
+      <!-- Solo el superadministrador puede agregar departamentos -->
+      <v-col cols="12" sm="6" md="auto" v-if="tokenUser?.super_admin == 1">
         <v-btn color="primary" prepend-icon="mdi-view-list" @click="abrirFormularioLista('departamentos')">
           Agregar varios departamentos
         </v-btn>

@@ -12,6 +12,7 @@ declare global {
   const anulado: typeof import('./utils/imagenes.js').anulado
   const api: typeof import('./utils/api.js').api
   const apiCall: typeof import('./utils/api.js').apiCall
+  const borrarToken: typeof import('./utils/decode.js').borrarToken
   const capitalize: typeof import('vue').capitalize
   const coloresEstados: typeof import('./composables/useFunciones.js').coloresEstados
   const compressAndResizeImage: typeof import('./utils/imagen.js').compressAndResizeImage
@@ -34,6 +35,7 @@ declare global {
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
   const getToken: typeof import('./utils/decode.js').getToken
+  const guardarToken: typeof import('./utils/decode.js').guardarToken
   const h: typeof import('vue').h
   const imagenABase641a1: typeof import('./utils/imagen.js').imagenABase641a1
   const imagenABase64Cuadrada: typeof import('./utils/imagen.js').imagenABase64Cuadrada
@@ -82,6 +84,7 @@ declare global {
   const toRefs: typeof import('vue').toRefs
   const toValue: typeof import('vue').toValue
   const toast: typeof import('./composables/useToast.js').toast
+  const tokenVigente: typeof import('./utils/decode.js').tokenVigente
   const triggerRef: typeof import('vue').triggerRef
   const unref: typeof import('vue').unref
   const useAttrs: typeof import('vue').useAttrs
@@ -116,6 +119,7 @@ declare module 'vue' {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly anulado: UnwrapRef<typeof import('./utils/imagenes.js')['anulado']>
     readonly apiCall: UnwrapRef<typeof import('./utils/api.js')['apiCall']>
+    readonly borrarToken: UnwrapRef<typeof import('./utils/decode.js')['borrarToken']>
     readonly coloresEstados: UnwrapRef<typeof import('./composables/useFunciones.js')['coloresEstados']>
     readonly compressAndResizeImage: UnwrapRef<typeof import('./utils/imagen.js')['compressAndResizeImage']>
     readonly comprimirImagen: UnwrapRef<typeof import('./utils/imagen.js')['comprimirImagen']>
@@ -137,6 +141,7 @@ declare module 'vue' {
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
     readonly getToken: UnwrapRef<typeof import('./utils/decode.js')['getToken']>
+    readonly guardarToken: UnwrapRef<typeof import('./utils/decode.js')['guardarToken']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly imagenABase641a1: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase641a1']>
     readonly imagenABase64Cuadrada: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase64Cuadrada']>
@@ -185,6 +190,7 @@ declare module 'vue' {
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
     readonly toValue: UnwrapRef<typeof import('vue')['toValue']>
     readonly toast: UnwrapRef<typeof import('./composables/useToast.js')['toast']>
+    readonly tokenVigente: UnwrapRef<typeof import('./utils/decode.js')['tokenVigente']>
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>

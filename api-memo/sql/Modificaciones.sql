@@ -72,3 +72,7 @@ ADD fec_rec datetime;
 ALTER TABLE login ADD last_login DATETIME DEFAULT NULL;
 ALTER TABLE login ADD change_pass BOOLEAN DEFAULT 1;
 
+
+-- 08/11/2026
+-- Eliminación lógica de departamentos (omitir si la columna ya existe en la base de datos)
+ALTER TABLE departamentos ADD dep_eli BOOLEAN DEFAULT 1;

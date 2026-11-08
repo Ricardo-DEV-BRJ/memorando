@@ -4,12 +4,15 @@ const saltRounds = 10;
 
 class responsablesModel {
 
+  // Devuelve el rol vigente del usuario logueado: { superAdmin, id_dep }
   permisos(user_id) {
     return new Promise(async (resolve, reject) => {
       try {
-        const sql = 'SELECT permisos FROM login WHERE id_responsable = ?';
+        const sql = `SELECT l.permisos, l.per_super, r.id_dep
+        FROM login l
+        INNER JOIN responsable r ON r.id = l.id_responsable
+        WHERE l.id_responsable = ?`;
         const [rows] = await db.query(sql, [user_id]);
-        console.log(rows);
 
         if (rows.length === 0) {
           return reject({ message: 'No tienes permiso para realizar esta acción', status: 403 });
@@ -17,7 +20,26 @@ class responsablesModel {
         if (rows[0].permisos === 0 || rows[0].permisos === 2 || rows[0].permisos == null) {
           return reject({ message: 'No tienes permiso para realizar esta acción', status: 403 });
         }
-        resolve();
+        resolve({ superAdmin: rows[0].per_super == 1, id_dep: rows[0].id_dep });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  // El administrador de un departamento solo puede gestionar al personal de su propio departamento.
+  // El superadministrador puede gestionar a cualquiera. Devuelve el departamento actual del usuario objetivo.
+  verificarAlcance(rol, id) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const [rows] = await db.query('SELECT id_dep FROM responsable WHERE id = ?', [id]);
+        if (rows.length === 0) {
+          return reject({ message: 'El usuario no existe', status: 404 });
+        }
+        if (!rol.superAdmin && rows[0].id_dep != rol.id_dep) {
+          return reject({ message: 'Solo puedes gestionar al personal de tu departamento', status: 403 });
+        }
+        resolve(rows[0].id_dep);
       } catch (error) {
         reject(error);
       }
@@ -31,7 +53,8 @@ class responsablesModel {
       INNER JOIN login l ON r.id = l.id_responsable
       INNER JOIN departamentos d ON d.id_dep = r.id_dep 
       WHERE l.permisos <> 0 AND r.id_dep = ?`
-      const sql2 = `SELECT * FROM departamentos`
+      // Solo departamentos vigentes como destinatarios de memorandos
+      const sql2 = `SELECT id_dep, nombre_dep, email FROM departamentos WHERE dep_eli = 1 ORDER BY nombre_dep ASC`
       try {
         const [rows] = await db.query(sql, [id_dep]);
         const [dep] = await db.query(sql2);
@@ -70,15 +93,19 @@ class responsablesModel {
 
   create(data, id_log, user_departamento) {
     return new Promise(async (resolve, reject) => {
+      let rol;
       try {
-        await this.permisos(id_log);
+        rol = await this.permisos(id_log);
       } catch (error) {
         return reject(error);
       }
 
       const { nombre, apellido, cedula, firma, email_resp, id_dep } = data;
+      // Solo el superadministrador puede elegir el departamento; el administrador agrega personal a su departamento
+      const departamentoAdmin = rol.id_dep ?? user_departamento;
+      const departamento = rol.superAdmin && id_dep ? id_dep : departamentoAdmin;
       const sqlRespo = 'INSERT INTO responsable (nombre, apellido, cedula, firma, email_resp, id_dep) VALUES (?,?,?,?,?,?)';
-      const valores = [nombre, apellido, cedula, firma, email_resp, id_dep ? id_dep : user_departamento];
+      const valores = [nombre, apellido, cedula, firma, email_resp, departamento];
 
       const hashedPass = await bcrypt.hash(data.clave, saltRounds);
       const sqlLogin = 'INSERT INTO login (id_responsable, cedula, clave, permisos, change_pass) VALUES (?, ?, ?, ?, ?)';
@@ -152,14 +179,19 @@ class responsablesModel {
 
   update(id, data, id_log) {
     return new Promise(async (resolve, reject) => {
+      let departamentoActual;
+      let rol;
       try {
-        await this.permisos(id_log);
+        rol = await this.permisos(id_log);
+        departamentoActual = await this.verificarAlcance(rol, id);
       } catch (error) {
         return reject(error);
       }
       const { nombre, apellido, cedula, firma, email_resp, id_dep, permisos } = data;
+      // Solo el superadministrador puede cambiar el departamento de un usuario
+      const departamento = rol.superAdmin && id_dep ? id_dep : departamentoActual;
       const sql = 'UPDATE responsable SET nombre = ? , apellido = ? , cedula = ? , firma = ? , email_resp = ? , id_dep = ? WHERE id = ?';
-      const valores = [nombre, apellido, cedula, firma, email_resp, id_dep, id];
+      const valores = [nombre, apellido, cedula, firma, email_resp, departamento, id];
       const sqlLogin = 'UPDATE login SET permisos = ? WHERE id_responsable = ?';
       const valoresLogin = [permisos, id];
       try {
@@ -231,7 +263,8 @@ class responsablesModel {
   delete(id, id_log) {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.permisos(id_log);
+        const rol = await this.permisos(id_log);
+        await this.verificarAlcance(rol, id);
       } catch (error) {
         return reject(error);
       }
@@ -249,7 +282,8 @@ class responsablesModel {
   activar(id, id_log) {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.permisos(id_log);
+        const rol = await this.permisos(id_log);
+        await this.verificarAlcance(rol, id);
       } catch (error) {
         return reject(error);
       }
