@@ -96,6 +96,36 @@ class memoModel {
     });
   }
 
+  // Verificación pública por folio (código QR del PDF). Solo devuelve lo necesario para comprobar el documento:
+  // sin firmas, cédulas ni correos, porque cualquiera puede consultar un folio.
+  documentoQr(folio) {
+    return new Promise(async (resolve, reject) => {
+      const sql = `
+      SELECT m.id, m.folio_me, m.asunto, m.descripcion, m.fecha, m.estado,
+        depa_emi.nombre_dep AS de, depa_rep.nombre_dep AS pa_quien,
+        u.nombre AS nom_dir, u.direccion, r.nombre, r.apellido
+      FROM memorando m
+      INNER JOIN ubicacion u ON m.id_ubicacion = u.id
+      INNER JOIN responsable r ON m.id_responsable = r.id
+      INNER JOIN departamentos depa_emi ON depa_emi.id_dep = m.id_dep
+      INNER JOIN departamentos depa_rep ON depa_rep.id_dep = m.pa_quien
+      WHERE m.folio_me = ?
+      `;
+      const sqlEquipos = 'SELECT e.nombre, e.serial, e.descripcion, e.estado FROM equipo e INNER JOIN equipo_memo em ON e.id = em.id_equipo WHERE em.id_memo = ?';
+      try {
+        const [rows] = await db.query(sql, [folio]);
+        if (rows.length === 0) {
+          return reject({ status: 404, message: 'El folio no existe en el sistema' });
+        }
+        const { id, ...memo } = rows[0];
+        const [equipos] = await db.query(sqlEquipos, [id]);
+        resolve({ status: 200, data: { ...memo, equipos }, message: 'Documento verificado' });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
   create(data) {
     return new Promise(async (resolve, reject) => {
       const connection = await db.getConnection();

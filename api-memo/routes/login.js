@@ -10,7 +10,7 @@ router.get('/', verifyToken, async (req, res) => {
     const data = await controller.all(req.user_id);
     res.status(data.status).json({ message: data.message, users: data.data, depa: data.depa });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message });
   }
 });
 
@@ -79,7 +79,7 @@ router.put('/:id', verifyToken, async (req, res) => {
     const data = await controller.update(req.params.id, req.body);
     res.status(data.status).json({ message: data.message, data: data.data });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message });
   }
 });
 
@@ -89,7 +89,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
     const data = await controller.delete(req.params.id, req.body.user_id);
     res.status(data.status).json({ message: data.message, data: data.data });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message });
   }
 });
 

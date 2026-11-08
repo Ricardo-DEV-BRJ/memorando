@@ -28,7 +28,7 @@ router.get('/documento/:folio', async (req, res) => {
     const data = await controller.documentoQr(req.params.folio);
     res.status(data.status).json({ message: data.message, memos: data.data });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message });
   }
 });
 

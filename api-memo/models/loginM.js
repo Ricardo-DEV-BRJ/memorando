@@ -64,10 +64,41 @@ class loginmodel {
     });
   }
 
+  // Solo un administrador del mismo departamento del usuario, o el superadministrador, puede gestionar su acceso.
+  // Un administrador no puede modificar a un superadministrador. Devuelve los datos del usuario objetivo.
+  alcance(user_id, id) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const superAdmin = await this.permisos(user_id);
+        const [rows] = await db.query(
+          `SELECT r.id, r.cedula, r.id_dep, l.id AS id_login, l.per_super
+          FROM responsable r
+          LEFT JOIN login l ON l.id_responsable = r.id
+          WHERE r.id = ?`, [id]);
+        if (rows.length === 0) {
+          return reject({ message: 'El usuario no existe', status: 404 });
+        }
+        const objetivo = rows[0];
+        if (!superAdmin) {
+          const [propio] = await db.query('SELECT id_dep FROM responsable WHERE id = ?', [user_id]);
+          if (propio.length === 0 || propio[0].id_dep != objetivo.id_dep) {
+            return reject({ message: 'Solo puedes gestionar al personal de tu departamento', status: 403 });
+          }
+          if (objetivo.per_super == 1) {
+            return reject({ message: 'No puedes modificar el acceso de un superadministrador', status: 403 });
+          }
+        }
+        resolve(objetivo);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
   asignarPermisos(id, data) {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.permisos(data.user_id);
+        await this.alcance(data.user_id, id);
         const sqlAdmin = 'SELECT id_responsable FROM login WHERE per_super = ?';
         const [rowsAdmin] = await db.query(sqlAdmin, [1]);
         if (rowsAdmin.some(row => row.id_responsable == id)) {
@@ -168,13 +199,24 @@ class loginmodel {
   //   });
   // }
 
+  // "Dar acceso": asigna una contraseña. Si el usuario no tenía acceso al sistema, se lo crea con rol Responsable.
   update(id, data) {
     return new Promise(async (resolve, reject) => {
       try {
+        const objetivo = await this.alcance(data.user_id, id);
+        if (!data.clave) {
+          return reject({ message: 'Debe indicar la contraseña', status: 400 });
+        }
         const hashedPass = await bcrypt.hash(data.clave, saltRounds);
-        const sql = 'UPDATE login SET clave = ?, change_pass = ? WHERE id_responsable = ?';
-        const [rows] = await db.query(sql, [hashedPass, data.change_pass, id]);
-        resolve({ status: 200, message: 'Usuario actualizado con éxito', data: rows });
+        const change_pass = data.change_pass ? 1 : 0;
+        if (objetivo.id_login) {
+          const sql = 'UPDATE login SET clave = ?, change_pass = ? WHERE id_responsable = ?';
+          const [rows] = await db.query(sql, [hashedPass, change_pass, id]);
+          return resolve({ status: 200, message: 'Contraseña actualizada con éxito', data: rows });
+        }
+        const sql = 'INSERT INTO login (id_responsable, cedula, clave, permisos, change_pass) VALUES (?, ?, ?, 2, ?)';
+        const [rows] = await db.query(sql, [id, objetivo.cedula, hashedPass, change_pass]);
+        resolve({ status: 200, message: 'Acceso al sistema concedido con éxito', data: rows });
       } catch (error) {
         reject(error);
       }
@@ -184,8 +226,7 @@ class loginmodel {
   delete(id, user_id) {
     return new Promise(async (resolve, reject) => {
       try {
-        console.log(user_id);
-        await this.permisos(user_id);
+        await this.alcance(user_id, id);
         const sql = 'DELETE FROM login WHERE id_responsable = ?';
         const [rows] = await db.query(sql, [id]);
         resolve({ status: 200, message: 'Usuario eliminado con éxito', data: rows });
