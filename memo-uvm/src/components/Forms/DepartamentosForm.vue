@@ -9,8 +9,8 @@ const datos = ref({
 const validado = ref(null)
 const editando = ref(false)
 const guardando = ref(false)
-// Memorandos activos del departamento que se está editando (solo informativo)
-const memosActivos = ref(0)
+// Memorandos relacionados con el departamento que se está editando (solo informativo)
+const totalMemos = ref(0)
 
 const emit = defineEmits(['guardado']);
 
@@ -24,7 +24,7 @@ function abrir(data = {}) {
       nombre_dep: '',
       email: '',
     };
-    memosActivos.value = 0;
+    totalMemos.value = 0;
     editando.value = false;
   } else {
     datos.value = {
@@ -32,7 +32,7 @@ function abrir(data = {}) {
       nombre_dep: data.nombre_dep || '',
       email: data.email || '',
     };
-    memosActivos.value = Number(data.memos_activos) || 0;
+    totalMemos.value = Number(data.total_memos) || 0;
     editando.value = true;
   }
   guardando.value = false;
@@ -103,9 +103,9 @@ defineExpose({
         Departamentos
       </v-card-subtitle>
       <v-card-text>
-        <v-alert v-if="editando && memosActivos > 0" type="warning" variant="tonal" density="compact" rounded="lg"
+        <v-alert v-if="editando && totalMemos > 0" type="warning" variant="tonal" density="compact" rounded="lg"
           class="mb-4" icon="mdi-lock-outline">
-          Tiene {{ memosActivos }} {{ memosActivos === 1 ? 'memorando activo' : 'memorandos activos' }}:
+          Tiene {{ totalMemos }} {{ totalMemos === 1 ? 'memorando relacionado' : 'memorandos relacionados' }}:
           puedes editar sus datos, pero no eliminarlo.
         </v-alert>
         <v-form v-model="validado" @submit.prevent="guardar">

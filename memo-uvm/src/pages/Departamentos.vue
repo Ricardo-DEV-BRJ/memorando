@@ -4,7 +4,7 @@ import DepartamentosForm from '@/components/Forms/DepartamentosForm.vue'
 const departamentos = ref([])
 const cargando = ref(false)
 const busqueda = ref('')
-// 'todos' | 'activos' (con memorandos activos) | 'libres' (sin memorandos activos)
+// 'todos' | 'con' (con memorandos relacionados) | 'sin' (sin memorandos relacionados)
 const filtro = ref('todos')
 const lista = ref(null)
 const departamentosForm = ref(null)
@@ -13,13 +13,14 @@ const confirmDialogRef = ref(null)
 const headers = [
   { key: 'nombre_dep', title: 'Departamento', subtitle: 'Correo', sortable: true },
   { key: 'total_personal', title: 'Personal', sortable: true, align: 'center' },
-  { key: 'memos_activos', title: 'Memorandos', subtitle: 'Activos / Total', sortable: true, align: 'center' },
+  { key: 'total_memos', title: 'Memorandos', subtitle: 'Relacionados', sortable: true, align: 'center' },
   { key: 'estado', title: 'Estado', sortable: false },
   { key: 'acciones', title: 'Opciones', sortable: false, align: 'end' },
 ]
 
-function tieneActivos(departamento) {
-  return departamento.memos_activos > 0
+// Un departamento con memorandos relacionados (en cualquier estado) no se puede eliminar, solo editar
+function tieneMemos(departamento) {
+  return departamento.total_memos > 0
 }
 
 function plural(cantidad, singular, pluralTexto = `${singular}s`) {
@@ -33,8 +34,8 @@ function iniciales(nombre = '') {
 
 const resumen = computed(() => {
   const total = departamentos.value.length
-  const conActivos = departamentos.value.filter(tieneActivos).length
-  return { total, conActivos, libres: total - conActivos }
+  const conMemos = departamentos.value.filter(tieneMemos).length
+  return { total, conMemos, sinMemos: total - conMemos }
 })
 
 const tarjetas = computed(() => [
@@ -46,24 +47,24 @@ const tarjetas = computed(() => [
     color: 'primary',
   },
   {
-    valor: 'activos',
-    titulo: 'Con memorandos activos',
-    cantidad: resumen.value.conActivos,
+    valor: 'con',
+    titulo: 'Con memorandos',
+    cantidad: resumen.value.conMemos,
     icono: 'mdi-file-document-alert-outline',
     color: 'warning',
   },
   {
-    valor: 'libres',
-    titulo: 'Sin memorandos activos',
-    cantidad: resumen.value.libres,
+    valor: 'sin',
+    titulo: 'Sin memorandos',
+    cantidad: resumen.value.sinMemos,
     icono: 'mdi-file-document-check-outline',
     color: 'success',
   },
 ])
 
 const departamentosFiltrados = computed(() => {
-  if (filtro.value === 'activos') return departamentos.value.filter(tieneActivos)
-  if (filtro.value === 'libres') return departamentos.value.filter((d) => !tieneActivos(d))
+  if (filtro.value === 'con') return departamentos.value.filter(tieneMemos)
+  if (filtro.value === 'sin') return departamentos.value.filter((d) => !tieneMemos(d))
   return departamentos.value
 })
 
@@ -79,7 +80,6 @@ function cargaInicial() {
         ...d,
         total_personal: Number(d.total_personal) || 0,
         total_memos: Number(d.total_memos) || 0,
-        memos_activos: Number(d.memos_activos) || 0,
       }))
     })
     .catch((err) => {
@@ -95,8 +95,8 @@ function abrirFormularioLista(tipo) {
 }
 
 function abrirEliminarDepa(item) {
-  // Un departamento con memorandos activos solo se puede editar
-  if (tieneActivos(item)) return
+  // Un departamento con memorandos relacionados solo se puede editar
+  if (tieneMemos(item)) return
   const aviso = item.total_personal > 0
     ? ` Tiene ${plural(item.total_personal, 'usuario activo', 'usuarios activos')} que deberás reasignar a otro departamento.`
     : ''
@@ -137,8 +137,8 @@ onMounted(() => {
       <v-col cols="12">
         <h1 class="text-h5 font-weight-bold">Gestión de departamentos</h1>
         <p class="text-body-2 text-medium-emphasis mt-1">
-          Consulta los departamentos registrados y sus memorandos activos.
-          Un departamento con memorandos activos solo puede editarse.
+          Consulta los departamentos registrados y sus memorandos.
+          Un departamento con memorandos relacionados solo puede editarse.
         </p>
       </v-col>
       <v-col cols="12" sm="6" md="auto">
@@ -204,7 +204,7 @@ onMounted(() => {
             <span class="text-subtitle-2 font-weight-bold">{{ column.title }}</span>
             <small class="text-body-2 text-medium-emphasis d-block">{{ column.subtitle }}</small>
           </template>
-          <template #header.memos_activos="{ column }">
+          <template #header.total_memos="{ column }">
             <span class="text-subtitle-2 font-weight-bold">{{ column.title }}</span>
             <small class="text-body-2 text-medium-emphasis d-block">{{ column.subtitle }}</small>
           </template>
@@ -212,7 +212,7 @@ onMounted(() => {
           <!-- Nombre y correo -->
           <template v-slot:item.nombre_dep="{ item }">
             <div class="d-flex align-center ga-3 py-2">
-              <v-avatar v-if="!$vuetify.display.smAndDown" :color="tieneActivos(item) ? 'warning' : 'primary'"
+              <v-avatar v-if="!$vuetify.display.smAndDown" :color="tieneMemos(item) ? 'warning' : 'primary'"
                 variant="tonal" size="36" rounded="lg">
                 <small class="font-weight-bold">{{ iniciales(item.nombre_dep) }}</small>
               </v-avatar>
@@ -234,24 +234,21 @@ onMounted(() => {
             </v-chip>
           </template>
 
-          <!-- Memorandos activos / total -->
-          <template v-slot:item.memos_activos="{ item }">
-            <div class="d-inline-flex flex-column align-center py-1">
-              <v-chip :color="tieneActivos(item) ? 'warning' : undefined" variant="tonal" size="small"
-                prepend-icon="mdi-file-document-multiple-outline">
-                {{ plural(item.memos_activos, 'activo') }}
-              </v-chip>
-              <small class="text-caption text-medium-emphasis mt-1">de {{ item.total_memos }} en total</small>
-            </div>
+          <!-- Memorandos relacionados (emitidos, recibidos o con vigilancia), en cualquier estado -->
+          <template v-slot:item.total_memos="{ item }">
+            <v-chip :color="tieneMemos(item) ? 'warning' : undefined" variant="tonal" size="small"
+              prepend-icon="mdi-file-document-multiple-outline">
+              {{ plural(item.total_memos, 'memorando') }}
+            </v-chip>
           </template>
 
           <!-- Estado -->
           <template v-slot:item.estado="{ item }">
-            <v-chip v-if="tieneActivos(item)" color="warning" variant="tonal" size="small" prepend-icon="mdi-lock-outline">
-              Con memorandos activos
+            <v-chip v-if="tieneMemos(item)" color="warning" variant="tonal" size="small" prepend-icon="mdi-lock-outline">
+              Con memorandos
             </v-chip>
             <v-chip v-else color="success" variant="tonal" size="small" prepend-icon="mdi-check-circle-outline">
-              Sin memorandos activos
+              Sin memorandos
             </v-chip>
           </template>
 
@@ -260,14 +257,14 @@ onMounted(() => {
             <div class="d-flex justify-end align-center ga-1">
               <v-btn icon="mdi-pencil-outline" variant="tonal" size="small" color="primary"
                 :title="`Editar ${item.nombre_dep}`" @click="departamentosForm.abrir(item)" />
-              <v-btn v-if="!tieneActivos(item)" icon="mdi-delete-outline" variant="tonal" size="small" color="error"
+              <v-btn v-if="!tieneMemos(item)" icon="mdi-delete-outline" variant="tonal" size="small" color="error"
                 :title="`Eliminar ${item.nombre_dep}`" @click="abrirEliminarDepa(item)" />
               <v-tooltip v-else location="top">
                 <template #activator="{ props }">
                   <v-icon v-bind="props" icon="mdi-lock-outline" color="warning" class="mx-2" tabindex="0"
-                    :aria-label="`No se puede eliminar: tiene ${plural(item.memos_activos, 'memorando activo', 'memorandos activos')}`" />
+                    :aria-label="`No se puede eliminar: tiene ${plural(item.total_memos, 'memorando relacionado', 'memorandos relacionados')}`" />
                 </template>
-                No se puede eliminar: tiene {{ plural(item.memos_activos, 'memorando activo', 'memorandos activos') }}
+                No se puede eliminar: tiene {{ plural(item.total_memos, 'memorando relacionado', 'memorandos relacionados') }}
               </v-tooltip>
             </div>
           </template>

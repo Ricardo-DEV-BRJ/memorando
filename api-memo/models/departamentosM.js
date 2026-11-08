@@ -1,13 +1,8 @@
 const db = require('../database/db.js');
 
-// Un memorando está activo mientras no llegue a un estado final.
-// Los memorandos sin estado (recién creados) también se consideran activos.
-const ESTADOS_FINALES = ['recibido', 'completado', 'anulado'];
-const condicionActivo = (alias) =>
-  `(${alias}.estado IS NULL OR LOWER(TRIM(${alias}.estado)) NOT IN (${ESTADOS_FINALES.map(() => '?').join(', ')}))`;
-
-// Un departamento participa en un memorando como emisor, destinatario o vigilancia
-const condicionParticipa = (alias) => `(${alias}.id_dep = ? OR ${alias}.pa_quien = ? OR ${alias}.vigilancia = ?)`;
+// Un memorando está relacionado con un departamento si este lo emite, lo recibe o hace de vigilancia,
+// sin importar el estado del memorando. Un departamento con memorandos relacionados no se puede eliminar.
+const condicionRelacionado = (alias) => `(${alias}.id_dep = ? OR ${alias}.pa_quien = ? OR ${alias}.vigilancia = ?)`;
 
 function errorHttp(status, message) {
   return { status, message };
@@ -48,8 +43,7 @@ class departamentosModel {
       SELECT d.id_dep, d.nombre_dep, d.email,
         COALESCE(p.total_personal, 0) AS total_personal,
         COALESCE(mm.total_memos, 0) AS total_memos,
-        COALESCE(mm.memos_activos, 0) AS memos_activos,
-        CASE WHEN COALESCE(mm.memos_activos, 0) = 0 THEN 1 ELSE 0 END AS eliminable
+        CASE WHEN COALESCE(mm.total_memos, 0) = 0 THEN 1 ELSE 0 END AS eliminable
       FROM departamentos d
       LEFT JOIN (
         SELECT id_dep, COUNT(*) AS total_personal
@@ -58,15 +52,14 @@ class departamentosModel {
         GROUP BY id_dep
       ) p ON p.id_dep = d.id_dep
       LEFT JOIN (
-        SELECT x.id_dep,
-          COUNT(DISTINCT x.id) AS total_memos,
-          COUNT(DISTINCT CASE WHEN x.activo = 1 THEN x.id END) AS memos_activos
+        -- Un memorando cuenta una sola vez aunque el departamento sea emisor y destinatario
+        SELECT x.id_dep, COUNT(DISTINCT x.id) AS total_memos
         FROM (
-          SELECT m.id, m.id_dep, ${condicionActivo('m')} AS activo FROM memorando m
+          SELECT id, id_dep FROM memorando
           UNION ALL
-          SELECT m.id, m.pa_quien, ${condicionActivo('m')} FROM memorando m
+          SELECT id, pa_quien FROM memorando
           UNION ALL
-          SELECT m.id, m.vigilancia, ${condicionActivo('m')} FROM memorando m
+          SELECT id, vigilancia FROM memorando
         ) x
         WHERE x.id_dep IS NOT NULL
         GROUP BY x.id_dep
@@ -75,7 +68,7 @@ class departamentosModel {
       ORDER BY d.nombre_dep ASC
       `;
       try {
-        const [rows] = await db.query(sql, [...ESTADOS_FINALES, ...ESTADOS_FINALES, ...ESTADOS_FINALES]);
+        const [rows] = await db.query(sql);
         resolve({ status: 200, data: rows, message: 'Datos obtenidos con exito' });
       } catch (error) {
         reject(error);
@@ -83,11 +76,11 @@ class departamentosModel {
     });
   }
 
-  memosActivos(id) {
+  memosRelacionados(id) {
     return new Promise(async (resolve, reject) => {
-      const sql = `SELECT COUNT(*) AS total FROM memorando m WHERE ${condicionParticipa('m')} AND ${condicionActivo('m')}`;
+      const sql = `SELECT COUNT(*) AS total FROM memorando m WHERE ${condicionRelacionado('m')}`;
       try {
-        const [rows] = await db.query(sql, [id, id, id, ...ESTADOS_FINALES]);
+        const [rows] = await db.query(sql, [id, id, id]);
         resolve(Number(rows[0].total));
       } catch (error) {
         reject(error);
@@ -109,7 +102,7 @@ class departamentosModel {
     });
   }
 
-  // Evita departamentos activos con el mismo nombre
+  // Evita departamentos vigentes (no eliminados) con el mismo nombre
   validarNombreUnico(nombre_dep, idExcluir = null) {
     return new Promise(async (resolve, reject) => {
       let sql = 'SELECT id_dep FROM departamentos WHERE LOWER(TRIM(nombre_dep)) = LOWER(?) AND dep_eli = 1';
@@ -191,14 +184,14 @@ class departamentosModel {
     });
   }
 
-  // Eliminación lógica: solo se permite si el departamento no participa en memorandos activos
+  // Eliminación lógica: solo se permite si el departamento no tiene memorandos relacionados (en cualquier estado)
   delete(id) {
     return new Promise(async (resolve, reject) => {
       try {
         const departamento = await this.buscar(id);
-        const activos = await this.memosActivos(id);
-        if (activos > 0) {
-          return reject(errorHttp(409, `No se puede eliminar ${departamento.nombre_dep}: tiene ${activos} memorando${activos === 1 ? '' : 's'} activo${activos === 1 ? '' : 's'}`));
+        const relacionados = await this.memosRelacionados(id);
+        if (relacionados > 0) {
+          return reject(errorHttp(409, `No se puede eliminar ${departamento.nombre_dep}: tiene ${relacionados} memorando${relacionados === 1 ? '' : 's'} relacionado${relacionados === 1 ? '' : 's'}`));
         }
         await db.query('UPDATE departamentos SET dep_eli = 0 WHERE id_dep = ?', [id]);
         resolve({ status: 200, data: [], message: 'Departamento eliminado con éxito' });
