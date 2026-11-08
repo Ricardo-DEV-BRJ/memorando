@@ -47,7 +47,7 @@ const config = computed(() => {
     return {
       color: 'success',
       icon: 'mdi-check-circle-outline',
-      titulo: 'Marcar entrada',
+      titulo: 'Marcar en el sitio',
       mensaje: '¿Estás seguro de que deseas marcar este memorando como en el sitio? Esta acción no se puede deshacer.',
       btnTexto: 'Marcar en el sitio',
       btnIcon: 'mdi-check',
