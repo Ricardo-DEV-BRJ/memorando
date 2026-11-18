@@ -3,15 +3,18 @@ import PermisosForm from '@/components/Forms/PermisosForm.vue';
 
 // ── Estado ──────────────────────────────────────────────
 const usuarios = ref([])
+const departamentos = ref([])
 const cargando = ref(false)
-
+const tokenUser = ref('')
+const lista = ref(null)
 // Tabla
 const responsablesFormRef = ref(null);
 const confirmDialogRef = ref(null);
 const busqueda = ref('')
 const headers = [
-  { key: 'nombre', title: 'Nombre', sortable: true },
-  { key: 'cedula', title: 'Cédula', sortable: false },
+  { key: 'nombre', title: 'Nombre', subtitle: 'Departamento', sortable: true },
+  { key: 'cedula', title: 'Cédula', subtitle: 'Correo', sortable: false },
+  // { key: 'email_resp', title: 'Correo', sortable: true },
   { key: 'last_login', title: 'Último acceso', sortable: true },
   { key: 'permisos', title: 'Permisos', sortable: false },
   { key: 'acciones', title: 'Opciones', sortable: false },
@@ -28,7 +31,7 @@ const userSeleccionado = ref(null)
 const cargandoActivar = ref(false)
 
 const diagAccesoLogin = ref(false)
-const userAcceso = ref(null)
+const userAcceso = ref()
 const claveAcceso = ref('')
 const mostrarPassword = ref(false)
 const cargandoAcceso = ref(false)
@@ -39,6 +42,10 @@ function cargaInicial() {
   apiCall('login/')
     .then((res) => {
       usuarios.value = res.data.users
+      departamentos.value = res.data.depa
+    })
+    .catch((err) => {
+      toast.error(err.response.data.error)
     })
 }
 
@@ -128,11 +135,10 @@ function abrirAccesoLogin(item) {
 function guardarAccesoLogin() {
   if (!userAcceso.value || !claveAcceso.value) return;
   cargandoAcceso.value = true;
-  apiCall('login/acceso', {
-    id_responsable: userAcceso.value.id,
-    cedula: userAcceso.value.cedula,
+  apiCall(`login/${userAcceso.value.id}`, {
+    change_pass: userAcceso.value.change_pass || 0,
     clave: claveAcceso.value
-  }, 'POST')
+  }, 'PUT')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
         toast.success(res.data.message || 'Acceso al login concedido con éxito');
@@ -151,20 +157,64 @@ function guardarAccesoLogin() {
     });
 }
 
-onMounted(() => cargaInicial())
+function roles(id) {
+  switch (id) {
+    case 1:
+      return 'Admin'
+    case 2:
+      return 'Usuario'
+    case 0:
+      return 'Becado'
+    default:
+      break;
+  }
+}
+
+function coloresRoles(id) {
+  switch (id) {
+    case 1:
+      return 'warning'
+    case 2:
+      return 'primary'
+    case 0:
+      return 'error'
+    default:
+      break;
+  }
+}
+
+function abrirFormularioLista(tipo) {
+  lista.value.abrir(tipo);
+}
+
+onMounted(() => {
+  cargaInicial()
+  tokenUser.value = decodeToken()
+})
 </script>
 
 <template>
   <v-container>
     <v-row align="center" class="mb-4">
-      <v-col>
+      <v-col cols="12">
         <h1 class="text-h5 font-weight-bold">Gestión de Usuarios</h1>
         <p class="text-body-2 text-medium-emphasis mt-1">
           Administra los accesos al sistema
         </p>
       </v-col>
       <v-col cols="12" sm="6" md="auto">
-        <v-btn color="primary" @click="abrirFormulario">Agregar Responsable</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-account-plus" @click="abrirFormulario">Agregar Responsable</v-btn>
+      </v-col>
+      <!-- Solo el superadministrador puede agregar departamentos -->
+      <v-col cols="12" sm="6" md="auto" v-if="tokenUser?.super_admin == 1">
+        <v-btn color="primary" prepend-icon="mdi-view-list" @click="abrirFormularioLista('departamentos')">
+          Agregar varios departamentos
+        </v-btn>
+      </v-col>
+      <v-col cols="12" sm="6" md="auto">
+        <v-btn color="primary" prepend-icon="mdi-account-group" @click="abrirFormularioLista('responsables')">
+          Agregar varios responsables
+        </v-btn>
       </v-col>
       <v-col cols="auto">
         <v-btn color="primary" variant="flat" prepend-icon="mdi-refresh" :loading="cargando" @click="cargaInicial">
@@ -183,17 +233,42 @@ onMounted(() => cargaInicial())
         <v-data-table :headers="headers" :items="usuarios" :search="busqueda" :loading="cargando"
           :mobile="$vuetify.display.smAndDown" no-data-text="No hay usuarios registrados"
           loading-text="Cargando usuarios..." items-per-page-text="Usuarios por página">
+
+          <!-- Headers -->
+          <template #header.nombre="{ column }">
+            <span class="text-subtitle-2 font-weight-bold">{{ column.title }}</span>
+            <small class="text-body-2 text-medium-emphasis d-block">{{ column.subtitle }}</small>
+          </template>
+
+          <template #header.cedula="{ column }">
+            <span class="text-subtitle-2 font-weight-bold">{{ column.title }}</span>
+            <small class="text-body-2 text-medium-emphasis d-block">{{ column.subtitle }}</small>
+          </template>
+
           <!-- Nombre completo -->
           <template v-slot:item.nombre="{ item }">
             <div class="d-flex align-center ga-3 py-1">
-              <v-avatar color="primary" variant="tonal" size="36">
-                <span class="text-caption font-weight-bold">
+              <v-avatar color="primary" variant="tonal" size="26">
+                <small class="font-weight-bold">
                   {{ item.nombre?.charAt(0) }}{{ item.apellido?.charAt(0) }}
-                </span>
+                </small>
               </v-avatar>
               <div>
                 <div class="font-weight-medium">{{ item.nombre }} {{ item.apellido }}</div>
               </div>
+            </div>
+            <div class="d-flex align-center ga-1 mt-1">
+              <v-icon color="primary" class="mr-1">
+                mdi-map-marker-account-outline
+              </v-icon>
+              <small class="text-body-2 text-medium-emphasis">{{ item.departamento || 'Sin departamento' }}</small>
+            </div>
+          </template>
+          <!-- Cédula y correo -->
+          <template v-slot:item.cedula="{ item }">
+            <div class="d-flex flex-column">
+              <span class="font-weight-medium">{{ item.cedula || 'Sin cédula' }}</span>
+              <small class="text-body-2 text-medium-emphasis">{{ item.email_resp || 'Sin correo' }}</small>
             </div>
           </template>
 
@@ -202,19 +277,26 @@ onMounted(() => cargaInicial())
             <span class="text-body-2">{{ formatFecha(item.last_login) }}</span>
           </template>
 
+          <!-- email -->
+          <template v-slot:item.email_resp="{ item }">
+            <span class="text-body-2">{{ item.email_resp || 'Sin correo' }}</span>
+          </template>
+
           <!-- Permisos -->
           <template v-slot:item.permisos="{ item }">
-            <v-chip :color="item.permisos === 1 ? 'warning' : 'primary'" variant="tonal" size="small"
-              :prepend-icon="item.permisos === 1 ? 'mdi-shield-crown' : 'mdi-account'" v-if="item.tiene_acceso == 1">
-              {{ item.permisos === 1 ? 'Admin' : 'Usuario' }}
-            </v-chip>
-            <v-chip color="error" variant="tonal" size="small" prepend-icon="mdi-account-cancel" v-else>
-              Sin acceso
-            </v-chip>
-            <v-chip :color="item.eliminado === 1 ? 'success' : 'error'" variant="tonal" size="small"
-              :prepend-icon="item.eliminado === 1 ? 'mdi-shield-crown' : 'mdi-account'">
-              {{ item.eliminado === 0 ? 'Eliminado' : 'Activo' }}
-            </v-chip>
+            <div class="d-flex flex-wrap ga-2 my-2">
+              <v-chip :color="coloresRoles(item.permisos)" variant="tonal" size="small"
+                :prepend-icon="item.permisos === 1 ? 'mdi-shield-crown' : 'mdi-account'" v-if="item.tiene_acceso == 1">
+                {{ roles(item.permisos) }}
+              </v-chip>
+              <v-chip color="error" variant="tonal" size="small" prepend-icon="mdi-account-cancel" v-else>
+                Sin acceso
+              </v-chip>
+              <v-chip :color="item.eliminado === 1 ? 'success' : 'error'" variant="tonal" size="small"
+                :prepend-icon="item.eliminado === 1 ? 'mdi-shield-crown' : 'mdi-account'">
+                {{ item.eliminado === 0 ? 'Eliminado' : 'Activo' }}
+              </v-chip>
+            </div>
           </template>
 
           <!-- Acciones -->
@@ -246,7 +328,7 @@ onMounted(() => cargaInicial())
                 </v-list-item>
                 <v-list-item>
                   <v-btn icon="mdi-account-convert" variant="tonal" size="small" color="secondary"
-                    title="Cambiar permisos" @click="permisosFormRef.abrir({id: item.id })">
+                    title="Cambiar permisos" @click="permisosFormRef.abrir({ id: item.id })">
                   </v-btn>
                 </v-list-item>
               </v-list>
@@ -257,8 +339,9 @@ onMounted(() => cargaInicial())
     </v-card>
   </v-container>
   <permisos-form ref="permisosFormRef" @guardado="cargaInicial" />
-  <responsables-form ref="responsablesFormRef" @guardado="cargaInicial" />
+  <responsables-form ref="responsablesFormRef" @guardado="cargaInicial" :departamentos="departamentos" />
   <confirm-dialog ref="confirmDialogRef" @confirmar="eliminarResponsable" />
+  <listas-agregar-form ref="lista" @guardado="cargaInicial" />
   <!-- Modal Activar Responsable -->
   <v-dialog v-model="diagActivarUser" max-width="400px">
     <v-card class="pa-2 rounded-lg">
@@ -304,6 +387,10 @@ onMounted(() => cargaInicial())
                 prepend-inner-icon="mdi-lock" :append-inner-icon="mostrarPassword ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="mostrarPassword = !mostrarPassword" density="compact"
                 :rules="[reglas.required]"></v-text-field>
+            </v-col>
+            <v-col cols="12" class="py-0">
+              <v-checkbox v-model="userAcceso.change_pass" label="Solicitar cambio de contraseña al iniciar sesión"
+                color="primary" density="compact" :true-value="1" :false-value="0"></v-checkbox>
             </v-col>
           </v-row>
         </v-form>

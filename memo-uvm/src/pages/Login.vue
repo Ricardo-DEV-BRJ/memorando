@@ -25,11 +25,14 @@ async function iniciarSesion() {
     if (res.status === 200 || res.status === 201) {
       const token = res.data.token
       if (token) {
-        document.cookie = `token=${token}; path=/`
-        document.cookie = `permiso=${res.data.permisos}; path=/`
+        guardarToken(token)
       }
       toast.success(res.data.message || '¡Bienvenido!')
-      router.push('/')
+      if (res.data.change_pass) {
+        router.push('/cambiar-clave')
+      } else {
+        router.push('/')
+      }
     } else {
       errorMsg.value = res.data?.message || 'Credenciales incorrectas'
     }

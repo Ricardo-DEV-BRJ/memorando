@@ -136,7 +136,8 @@ defineExpose({
                         </v-col>
                         <v-col cols="12" sm="6" class="py-0">
                             <v-select label="Estado" prepend-inner-icon="mdi-check-circle-outline" density="compact"
-                                v-model="datos.estado" :rules="[reglas.required]" :items="['Disponible', 'Dañado', 'Mantenimiento']">
+                                v-model="datos.estado" :rules="[reglas.required]"
+                                :items="['Disponible', 'Dañado', 'Mantenimiento']">
                             </v-select>
                         </v-col>
                         <v-col cols="12" class="py-0">

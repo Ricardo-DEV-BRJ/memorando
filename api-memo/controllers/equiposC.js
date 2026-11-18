@@ -1,16 +1,16 @@
-import equiposModel from '../models/equiposM.js'
-const model = new equiposModel()
+const equiposModel = require('../models/equiposM.js');
+const model = new equiposModel();
 
 class equiposcontroller {
-  all() {
+  all(id_dep) {
     return new Promise((resolve, reject) => {
-      model.all()
+      model.all(id_dep)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -18,11 +18,11 @@ class equiposcontroller {
     return new Promise((resolve, reject) => {
       model.getOne(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -30,12 +30,23 @@ class equiposcontroller {
     return new Promise((resolve, reject) => {
       model.create(data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
+    });
+  }
 
+  listas(data) {
+    return new Promise((resolve, reject) => {
+      model.listas(data)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
     });
   }
 
@@ -43,11 +54,11 @@ class equiposcontroller {
     return new Promise((resolve, reject) => {
       model.update(id, data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -55,11 +66,11 @@ class equiposcontroller {
     return new Promise((resolve, reject) => {
       model.delete(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -67,13 +78,13 @@ class equiposcontroller {
     return new Promise((resolve, reject) => {
       model.changeStatus(id, data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 }
 
-export default equiposcontroller;
+module.exports = equiposcontroller;

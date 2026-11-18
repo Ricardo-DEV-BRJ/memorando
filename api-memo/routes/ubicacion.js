@@ -1,6 +1,6 @@
-import express from 'express';
-import ubicacionController from '../controllers/ubicacionC.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+const express = require('express');
+const ubicacionController = require('../controllers/ubicacionC.js');
+const { verifyToken } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new ubicacionController();
@@ -50,4 +50,4 @@ router.delete('/:id', verifyToken, async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

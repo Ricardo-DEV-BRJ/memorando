@@ -1,6 +1,6 @@
-import express from 'express';
-import loginController from '../controllers/loginC.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+const express = require('express');
+const loginController = require('../controllers/loginC.js');
+const { verifyToken, verifyTokenCambioClave } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new loginController();
@@ -8,9 +8,9 @@ const controller = new loginController();
 router.get('/', verifyToken, async (req, res) => {
   try {
     const data = await controller.all(req.user_id);
-    res.status(data.status).json({ message: data.message, users: data.data });
+    res.status(data.status).json({ message: data.message, users: data.data, depa: data.depa });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message });
   }
 });
 
@@ -52,7 +52,7 @@ router.put('/permisos/:id', verifyToken, async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/' // Es crucial que el path coincida con el de creación
+        path: '/'
       });
       res.status(data.status).json({ message: 'Permisos asignados con éxito, recargue la página'});
     } else {
@@ -63,13 +63,23 @@ router.put('/permisos/:id', verifyToken, async (req, res) => {
   }
 });
 
+// Debe ir antes de PUT /:id para que no sea capturada por esa ruta
+router.put('/cambiar-clave', verifyTokenCambioClave, async (req, res) => {
+  try {
+    const data = await controller.cambiarClave(req.user_id, req.body);
+    res.status(data.status).json(data);
+  } catch (error) {
+    res.status(error.status || 500).json({ message: error.message || 'Error al cambiar la contraseña' });
+  }
+});
+
 router.put('/:id', verifyToken, async (req, res) => {
   try {
     req.body.user_id = req.user_id;
     const data = await controller.update(req.params.id, req.body);
     res.status(data.status).json({ message: data.message, data: data.data });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message });
   }
 });
 
@@ -79,17 +89,16 @@ router.delete('/:id', verifyToken, async (req, res) => {
     const data = await controller.delete(req.params.id, req.body.user_id);
     res.status(data.status).json({ message: data.message, data: data.data });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(error.status || 500).json({ message: error.message, error: error.message });
   }
 });
 
 router.post('/logout', (req, res) => {
-  // El nombre de la cookie debe ser exactamente el mismo que usaste al crearla
   res.clearCookie('token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/' // Es crucial que el path coincida con el de creación
+    path: '/'
   });
 
   return res.status(200).json({
@@ -97,4 +106,4 @@ router.post('/logout', (req, res) => {
   });
 });
 
-export default router;
+module.exports = router;

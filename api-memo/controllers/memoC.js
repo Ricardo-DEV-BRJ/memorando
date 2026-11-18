@@ -1,17 +1,16 @@
-import memoModel from '../models/memosM.js'
-// import jwt from "jsonwebtoken"
-const model = new memoModel()
+const memoModel = require('../models/memosM.js');
+const model = new memoModel();
 
 class memoController {
-  all() {
+  all(id_dep) {
     return new Promise((resolve, reject) => {
-      model.all()
+      model.all(id_dep)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -19,14 +18,11 @@ class memoController {
     return new Promise((resolve, reject) => {
       model.getOne(id)
         .then((res) => {
-          // const secretKey = process.env.JWT_SECRET
-          // const hash = jwt.sign({ id: res.data.folio_me }, secretKey)
-          // res.token = hash
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -34,11 +30,11 @@ class memoController {
     return new Promise((resolve, reject) => {
       model.documentoQr(folio)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -46,12 +42,11 @@ class memoController {
     return new Promise((resolve, reject) => {
       model.create(data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
-
+          reject(err);
+        });
     });
   }
 
@@ -59,38 +54,85 @@ class memoController {
     return new Promise((resolve, reject) => {
       model.update(id, data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
-  recibir(id) {
+  recibir(id, id_dep, user_id) {
     return new Promise((resolve, reject) => {
-      model.recibir(id)
+      model.recibir(id, id_dep, user_id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
-  
+
+  marcar_salida(id, user_id) {
+    return new Promise((resolve, reject) => {
+      model.marcar_salida(id, user_id)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  marcar_entrada(id, user_id) {
+    return new Promise((resolve, reject) => {
+      model.marcar_entrada(id, user_id)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  marcar_completado(id, id_responsable) {
+    return new Promise((resolve, reject) => {
+      model.marcar_completado(id, id_responsable)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  marcar_sitio(id) {
+    return new Promise((resolve, reject) => {
+      model.marcar_sitio(id)
+        .then((res) => {
+          resolve(res);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
   anular(id) {
     return new Promise((resolve, reject) => {
       model.anular(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
-
 }
 
-export default memoController; 
+module.exports = memoController;

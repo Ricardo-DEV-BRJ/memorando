@@ -1,13 +1,33 @@
 <script setup>
 import { imagenABase64Optimizado } from '@/utils/imagen.js'
-import {reglas} from '@/utils/rules.js'
+import { reglas } from '@/utils/rules.js'
+
+const user = decodeToken()
+const props = defineProps({
+  departamentos: {
+    type: Array,
+    default: []
+  }
+})
+
 const diag = ref(false)
 const datos = ref({
   nombre: '',
   apellido: '',
+  email_resp: '',
+  id_dep: null,
+  permisos: null,
   cedula: '',
+  clave: '',
   firma: '',
 })
+
+const permisosUser = [
+  { title: 'Responsable', value: '2', subtitle: 'Sera responsable de los memorando generados' },
+  { title: 'Administrador', value: '1', subtitle: 'Tendra acceso total al sistema' },
+  { title: 'Becado', value: '0', subtitle: 'Podra generar memorandos pero no estar acargo de ellos' },
+]
+const mostrarPassword = ref(false)
 const validado = ref(null)
 const editando = ref(false)
 async function obtenerFirma(e) {
@@ -46,6 +66,7 @@ function abrir(data = {}) {
     editando.value = false;
   } else {
     datos.value = { ...data };
+    datos.value.permisos = permisosUser.filter(item => item.value === String(data.permisos))[0]?.value || null;
     editando.value = true;
   }
   diag.value = true;
@@ -62,7 +83,18 @@ function cancelar() {
 }
 
 async function agregar() {
-  apiCall('responsables/', datos.value, 'POST')
+  const envioBack = {
+    nombre: datos.value.nombre,
+    apellido: datos.value.apellido,
+    cedula: datos.value.cedula,
+    firma: datos.value.firma,
+    email_resp: datos.value.email_resp,
+    change_pass: datos.value.cambiar_clave,
+    id_dep: datos.value.id_dep,
+    permisos: datos.value.permisos,
+    clave: datos.value.clave,
+  };
+  apiCall('responsables/', envioBack, 'POST')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
         toast.success('Responsable agregado exitosamente');
@@ -79,7 +111,16 @@ async function agregar() {
 }
 
 async function actualizar() {
-  apiCall(`responsables/${datos.value.id}`, datos.value, 'PUT')
+  const envioBack = {
+    nombre: datos.value.nombre,
+    apellido: datos.value.apellido,
+    cedula: datos.value.cedula,
+    firma: datos.value.firma,
+    email_resp: datos.value.email_resp,
+    id_dep: datos.value.id_dep,
+    permisos: datos.value.permisos,
+  };
+  apiCall(`responsables/${datos.value.id}`, envioBack, 'PUT')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
         toast.success('Responsable actualizado exitosamente');
@@ -93,6 +134,14 @@ async function actualizar() {
       console.error(err);
       toast.error('Error al conectar con el servidor');
     });
+}
+
+const listaPermisos = (item) => {
+  return {
+    title: item.title,
+    value: item.value,
+    subtitle: item.subtitle,
+  }
 }
 
 defineExpose({
@@ -122,18 +171,44 @@ defineExpose({
       </v-card-subtitle>
       <v-card-text>
         <v-form v-model="validado" lazy-validation>
-          <v-row align="center">
+          <v-row class="ga-2">
             <v-col cols="12" sm="6" class="py-0">
-              <v-text-field label="Nombre" prepend-inner-icon="mdi-account" density="compact"
-                v-model="datos.nombre" :rules="[reglas.required]"></v-text-field>
+              <v-text-field label="Nombre" prepend-inner-icon="mdi-account" density="compact" v-model="datos.nombre"
+                :rules="[reglas.required]"></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" class="py-0">
-              <v-text-field label="Apellido" prepend-inner-icon="mdi-account" density="compact"
-                v-model="datos.apellido" :rules="[reglas.required]"></v-text-field>
+              <v-text-field label="Apellido" prepend-inner-icon="mdi-account" density="compact" v-model="datos.apellido"
+                :rules="[reglas.required]"></v-text-field>
             </v-col>
             <v-col cols="12" sm="6" class="py-0">
               <v-text-field label="Cedula" prepend-inner-icon="mdi-card-account-details" density="compact"
                 v-model="datos.cedula" :rules="[reglas.positive, reglas.required]" type="number" min='0'></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="6" class="py-0" v-if="!editando">
+              <v-text-field label="Contraseña" v-model="datos.clave" :type="mostrarPassword ? 'text' : 'password'"
+                prepend-inner-icon="mdi-lock" :append-inner-icon="mostrarPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                @click:append-inner="mostrarPassword = !mostrarPassword" density="compact"
+                :rules="[reglas.required]"></v-text-field>
+            </v-col>
+            <v-col cols="12" class="py-0" v-if="user.super_admin == 1">
+              <v-autocomplete v-model="datos.id_dep" label="Departamento" type="text" density="compact"
+              prepend-inner-icon="mdi-account" :items="departamentos" item-title="nombre_dep"
+                item-value="id_dep" :rules="[reglas.required]" />
+            </v-col>
+            <v-col cols="12" class="py-0" v-if="!editando">
+              <v-checkbox label="¿Que el usuario cambie su contraseña?" v-model="datos.cambiar_clave" density="compact" :true-value="1" :false-value="0">
+              </v-checkbox>
+            </v-col>
+            <v-col cols="12" class="py-0">
+              <v-select label="Rol" prepend-inner-icon="mdi-account-switch" density="compact"
+                v-model="datos.permisos" :rules="[reglas.required]" :items="permisosUser" item-title="title"
+                item-value="value" :item-props="listaPermisos">
+              </v-select>
+            </v-col>
+            <v-col cols="12" class="py-0">
+              <v-text-field label="Correo Institucional" prepend-inner-icon="mdi-card-account-details" density="compact"
+                v-model="datos.email_resp" :rules="[reglas.email, reglas.required]" type="mail"
+                min='0'></v-text-field>
             </v-col>
             <v-col cols="12" class="py-0">
               <v-file-input label="Firma" density="compact" @update:model-value="obtenerFirma"></v-file-input>
@@ -153,8 +228,10 @@ defineExpose({
       </v-card-text>
       <v-card-actions class="justify-end">
         <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" @click="cancelar">Cancelar</v-btn>
-        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar" :disabled="!validado" v-if="!editando">Agregar</v-btn>
-        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="actualizar" :disabled="!validado" v-else>Actualizar</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar"
+          :disabled="!validado" v-if="!editando">Agregar</v-btn>
+        <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="actualizar"
+          :disabled="!validado" v-else>Actualizar</v-btn>
       </v-card-actions>
     </v-card>
 

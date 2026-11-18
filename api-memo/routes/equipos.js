@@ -1,13 +1,13 @@
-import express from 'express';
-import equiposController from '../controllers/equiposC.js';
-import { verifyToken } from '../middlewares/auth.middleware.js';
+const express = require('express');
+const equiposController = require('../controllers/equiposC.js');
+const { verifyToken } = require('../middlewares/auth.middleware.js');
 
 const router = express.Router();
 const controller = new equiposController();
 
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const data = await controller.all();
+    const data = await controller.all(req.id_dep);
     res.status(data.status).json({ message: data.message, equ: data.data });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -25,7 +25,18 @@ router.get('/:id', verifyToken, async (req, res) => {
 
 router.post('/', verifyToken, async (req, res) => {
   try {
+    req.body.id_dep = req.id_dep
     const data = await controller.create(req.body);
+    res.status(201).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/lista-equipos', verifyToken, async (req, res) => {
+  try {
+    req.body.id_dep = req.id_dep
+    const data = await controller.listas(req.body);
     res.status(201).json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -59,4 +70,4 @@ router.put('/:id/changeStatus', verifyToken, async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

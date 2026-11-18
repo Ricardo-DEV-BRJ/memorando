@@ -1,0 +1,4 @@
+DELETE FROM memorando;
+ALTER TABLE memorando AUTO_INCREMENT = 1;
+DELETE FROM equipo_memo;
+ALTER TABLE equipo_memo AUTO_INCREMENT = 1;

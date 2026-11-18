@@ -12,6 +12,7 @@ declare global {
   const anulado: typeof import('./utils/imagenes.js').anulado
   const api: typeof import('./utils/api.js').api
   const apiCall: typeof import('./utils/api.js').apiCall
+  const borrarToken: typeof import('./utils/decode.js').borrarToken
   const capitalize: typeof import('vue').capitalize
   const coloresEstados: typeof import('./composables/useFunciones.js').coloresEstados
   const compressAndResizeImage: typeof import('./utils/imagen.js').compressAndResizeImage
@@ -19,16 +20,22 @@ declare global {
   const computed: typeof import('vue').computed
   const createApp: typeof import('vue').createApp
   const customRef: typeof import('vue').customRef
+  const decodeToken: typeof import('./utils/decode.js').decodeToken
   const defineAsyncComponent: typeof import('vue').defineAsyncComponent
   const defineComponent: typeof import('vue').defineComponent
   const effectScope: typeof import('vue').effectScope
+  const enviarCorreo: typeof import('./utils/enviarMemo.js').enviarCorreo
   const final: typeof import('./utils/imagenes.js').final
   const formatFecha: typeof import('./composables/useFunciones.js').formatFecha
+  const formatFechaHora: typeof import('./composables/useFunciones.js').formatFechaHora
   const generarMemo: typeof import('./utils/imprimir.js').generarMemo
+  const generarMemoCorreo: typeof import('./utils/enviarMemo.js').generarMemoCorreo
   const generarMemorando: typeof import('./utils/imprimir.js').generarMemorando
   const getCurrentInstance: typeof import('vue').getCurrentInstance
   const getCurrentScope: typeof import('vue').getCurrentScope
   const getCurrentWatcher: typeof import('vue').getCurrentWatcher
+  const getToken: typeof import('./utils/decode.js').getToken
+  const guardarToken: typeof import('./utils/decode.js').guardarToken
   const h: typeof import('vue').h
   const imagenABase641a1: typeof import('./utils/imagen.js').imagenABase641a1
   const imagenABase64Cuadrada: typeof import('./utils/imagen.js').imagenABase64Cuadrada
@@ -40,10 +47,12 @@ declare global {
   const isReadonly: typeof import('vue').isReadonly
   const isRef: typeof import('vue').isRef
   const isShallow: typeof import('vue').isShallow
+  const isTokenExpired: typeof import('./utils/decode.js').isTokenExpired
   const lateral: typeof import('./utils/imagenes.js').lateral
   const markRaw: typeof import('vue').markRaw
   const menbrete: typeof import('./utils/imagenes.js').menbrete
   const nextTick: typeof import('vue').nextTick
+  const obtenerDatos: typeof import('./utils/csv.js').obtenerDatos
   const onActivated: typeof import('vue').onActivated
   const onBeforeMount: typeof import('vue').onBeforeMount
   const onBeforeRouteLeave: typeof import('vue-router').onBeforeRouteLeave
@@ -75,6 +84,7 @@ declare global {
   const toRefs: typeof import('vue').toRefs
   const toValue: typeof import('vue').toValue
   const toast: typeof import('./composables/useToast.js').toast
+  const tokenVigente: typeof import('./utils/decode.js').tokenVigente
   const triggerRef: typeof import('vue').triggerRef
   const unref: typeof import('vue').unref
   const useAttrs: typeof import('vue').useAttrs
@@ -85,6 +95,7 @@ declare global {
   const useModel: typeof import('vue').useModel
   const useRoute: typeof import('vue-router').useRoute
   const useRouter: typeof import('vue-router').useRouter
+  const useSesion: typeof import('./composables/useSesion.js').useSesion
   const useSlots: typeof import('vue').useSlots
   const useTemplateRef: typeof import('vue').useTemplateRef
   const useToastState: typeof import('./composables/useToast.js').useToastState
@@ -108,22 +119,29 @@ declare module 'vue' {
     readonly EffectScope: UnwrapRef<typeof import('vue')['EffectScope']>
     readonly anulado: UnwrapRef<typeof import('./utils/imagenes.js')['anulado']>
     readonly apiCall: UnwrapRef<typeof import('./utils/api.js')['apiCall']>
+    readonly borrarToken: UnwrapRef<typeof import('./utils/decode.js')['borrarToken']>
     readonly coloresEstados: UnwrapRef<typeof import('./composables/useFunciones.js')['coloresEstados']>
     readonly compressAndResizeImage: UnwrapRef<typeof import('./utils/imagen.js')['compressAndResizeImage']>
     readonly comprimirImagen: UnwrapRef<typeof import('./utils/imagen.js')['comprimirImagen']>
     readonly computed: UnwrapRef<typeof import('vue')['computed']>
     readonly createApp: UnwrapRef<typeof import('vue')['createApp']>
     readonly customRef: UnwrapRef<typeof import('vue')['customRef']>
+    readonly decodeToken: UnwrapRef<typeof import('./utils/decode.js')['decodeToken']>
     readonly defineAsyncComponent: UnwrapRef<typeof import('vue')['defineAsyncComponent']>
     readonly defineComponent: UnwrapRef<typeof import('vue')['defineComponent']>
     readonly effectScope: UnwrapRef<typeof import('vue')['effectScope']>
+    readonly enviarCorreo: UnwrapRef<typeof import('./utils/enviarMemo.js')['enviarCorreo']>
     readonly final: UnwrapRef<typeof import('./utils/imagenes.js')['final']>
     readonly formatFecha: UnwrapRef<typeof import('./composables/useFunciones.js')['formatFecha']>
+    readonly formatFechaHora: UnwrapRef<typeof import('./composables/useFunciones.js')['formatFechaHora']>
     readonly generarMemo: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemo']>
+    readonly generarMemoCorreo: UnwrapRef<typeof import('./utils/enviarMemo.js')['generarMemoCorreo']>
     readonly generarMemorando: UnwrapRef<typeof import('./utils/imprimir.js')['generarMemorando']>
     readonly getCurrentInstance: UnwrapRef<typeof import('vue')['getCurrentInstance']>
     readonly getCurrentScope: UnwrapRef<typeof import('vue')['getCurrentScope']>
     readonly getCurrentWatcher: UnwrapRef<typeof import('vue')['getCurrentWatcher']>
+    readonly getToken: UnwrapRef<typeof import('./utils/decode.js')['getToken']>
+    readonly guardarToken: UnwrapRef<typeof import('./utils/decode.js')['guardarToken']>
     readonly h: UnwrapRef<typeof import('vue')['h']>
     readonly imagenABase641a1: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase641a1']>
     readonly imagenABase64Cuadrada: UnwrapRef<typeof import('./utils/imagen.js')['imagenABase64Cuadrada']>
@@ -135,10 +153,12 @@ declare module 'vue' {
     readonly isReadonly: UnwrapRef<typeof import('vue')['isReadonly']>
     readonly isRef: UnwrapRef<typeof import('vue')['isRef']>
     readonly isShallow: UnwrapRef<typeof import('vue')['isShallow']>
+    readonly isTokenExpired: UnwrapRef<typeof import('./utils/decode.js')['isTokenExpired']>
     readonly lateral: UnwrapRef<typeof import('./utils/imagenes.js')['lateral']>
     readonly markRaw: UnwrapRef<typeof import('vue')['markRaw']>
     readonly menbrete: UnwrapRef<typeof import('./utils/imagenes.js')['menbrete']>
     readonly nextTick: UnwrapRef<typeof import('vue')['nextTick']>
+    readonly obtenerDatos: UnwrapRef<typeof import('./utils/csv.js')['obtenerDatos']>
     readonly onActivated: UnwrapRef<typeof import('vue')['onActivated']>
     readonly onBeforeMount: UnwrapRef<typeof import('vue')['onBeforeMount']>
     readonly onBeforeRouteLeave: UnwrapRef<typeof import('vue-router')['onBeforeRouteLeave']>
@@ -170,6 +190,7 @@ declare module 'vue' {
     readonly toRefs: UnwrapRef<typeof import('vue')['toRefs']>
     readonly toValue: UnwrapRef<typeof import('vue')['toValue']>
     readonly toast: UnwrapRef<typeof import('./composables/useToast.js')['toast']>
+    readonly tokenVigente: UnwrapRef<typeof import('./utils/decode.js')['tokenVigente']>
     readonly triggerRef: UnwrapRef<typeof import('vue')['triggerRef']>
     readonly unref: UnwrapRef<typeof import('vue')['unref']>
     readonly useAttrs: UnwrapRef<typeof import('vue')['useAttrs']>
@@ -180,6 +201,7 @@ declare module 'vue' {
     readonly useModel: UnwrapRef<typeof import('vue')['useModel']>
     readonly useRoute: UnwrapRef<typeof import('vue-router')['useRoute']>
     readonly useRouter: UnwrapRef<typeof import('vue-router')['useRouter']>
+    readonly useSesion: UnwrapRef<typeof import('./composables/useSesion.js')['useSesion']>
     readonly useSlots: UnwrapRef<typeof import('vue')['useSlots']>
     readonly useTemplateRef: UnwrapRef<typeof import('vue')['useTemplateRef']>
     readonly useToastState: UnwrapRef<typeof import('./composables/useToast.js')['useToastState']>

@@ -270,7 +270,7 @@ onMounted(() => {
                   Equipos Registrados ({{ documento.equipos.length }})
                 </h3>
                 <v-data-table :headers="headersEquipos" :items="documento.equipos" density="compact"
-                  class="border rounded-lg" items-per-page="1" hide-default-footer :mobile="$vuetify.display.smAndDown">
+                  class="border rounded-lg" :items-per-page="-1" hide-default-footer :mobile="$vuetify.display.smAndDown">
                   <template #item.estado="{item}">
                     <v-chip size="x-small"
                       :color="item.estado === 'Disponible' || !item.estado ? 'success' : 'warning'">

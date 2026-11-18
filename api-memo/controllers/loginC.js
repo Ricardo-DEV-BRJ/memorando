@@ -1,46 +1,48 @@
-import loginModel from "../models/loginM.js"
-import jwt from "jsonwebtoken"
+const loginModel = require('../models/loginM.js');
+const { generarToken } = require('../utils/token.js');
 
-const model = new loginModel()
+const model = new loginModel();
 
 class logincontroller {
   all(user_id) {
     return new Promise((resolve, reject) => {
       model.all(user_id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
   authenticate(data) {
     return new Promise((resolve, reject) => {
       model.authenticate(data)
-        .then(({ responsable, permisos }) => {
-          const secretKey = process.env.JWT_SECRET
-          const token = jwt.sign(
-            {
-              id: responsable.id,
-              cedula: responsable.cedula,
-              nombre: responsable.nombre,
-              apellido: responsable.apellido,
-              permisos: permisos
-            },
-            secretKey,
-            { expiresIn: '8h' }
-          )
+        .then(({ responsable, permisos, change_pass }) => {
+          const token = generarToken(responsable, permisos, change_pass);
           resolve({
             status: 200,
             message: 'Inicio de sesión exitoso',
             token,
             permisos,
+            change_pass,
             responsable,
-          })
+          });
         })
-        .catch((err) => reject(err))
+        .catch((err) => reject(err));
+    });
+  }
+
+  cambiarClave(id, data) {
+    return new Promise((resolve, reject) => {
+      model.cambiarClave(id, data)
+        .then(({ message, responsable, permisos }) => {
+          // Nuevo token sin el cambio de contraseña pendiente
+          const token = generarToken(responsable, permisos, 0);
+          resolve({ status: 200, message, token });
+        })
+        .catch((err) => reject(err));
     });
   }
 
@@ -48,11 +50,11 @@ class logincontroller {
     return new Promise((resolve, reject) => {
       model.getOne(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -60,11 +62,11 @@ class logincontroller {
     return new Promise((resolve, reject) => {
       model.asignarPermisos(id, data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -72,11 +74,11 @@ class logincontroller {
     return new Promise((resolve, reject) => {
       model.create(data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -84,11 +86,11 @@ class logincontroller {
     return new Promise((resolve, reject) => {
       model.update(id, data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -96,13 +98,13 @@ class logincontroller {
     return new Promise((resolve, reject) => {
       model.delete(id, user_id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 }
 
-export default logincontroller;
+module.exports = logincontroller;

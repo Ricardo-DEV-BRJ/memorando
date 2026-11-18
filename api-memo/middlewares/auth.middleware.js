@@ -1,7 +1,7 @@
-import jwt from 'jsonwebtoken';
+const jwt = require('jsonwebtoken');
 
-export const verifyToken = (req, res, next) => {
-    // Obtener el encabezado Authorization (espera el formato "Bearer <TOKEN>")
+// permitirCambioClave: deja pasar a usuarios con el cambio de contraseña pendiente
+const autenticar = (permitirCambioClave) => (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) {
@@ -11,22 +11,32 @@ export const verifyToken = (req, res, next) => {
         });
     }
 
+    let decoded;
     try {
         const secretKey = process.env.JWT_SECRET;
-
-        // Verificar y decodificar el token
-        const decoded = jwt.verify(token, secretKey);
-
-        // Guardar los datos del token decodificado dentro de `req.user` para usarlo en las rutas
-        req.user_id = decoded.id;
-        req.nombre = decoded.nombre;
-        req.apellido = decoded.apellido;
-        // Continuar al siguiente middleware o ruta
-        next();
+        decoded = jwt.verify(token, secretKey);
     } catch (error) {
         return res.status(403).json({
             error: 'Token inválido o expirado',
             access: false
         });
     }
+
+    if (decoded.change_pass && !permitirCambioClave) {
+        return res.status(403).json({
+            message: 'Debe cambiar su contraseña antes de continuar',
+            change_pass: true
+        });
+    }
+
+    req.user_id = decoded.id;
+    req.nombre = decoded.nombre;
+    req.apellido = decoded.apellido;
+    req.id_dep = decoded.id_dep;
+    next();
 };
+
+const verifyToken = autenticar(false);
+const verifyTokenCambioClave = autenticar(true);
+
+module.exports = { verifyToken, verifyTokenCambioClave };

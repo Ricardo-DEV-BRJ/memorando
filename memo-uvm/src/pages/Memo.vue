@@ -10,6 +10,7 @@ const intentoEnvio = ref(false)
 const cargando = ref(false)
 const equipos = ref([])
 const resp = ref([])
+const depa = ref([])
 const ubica = ref([])
 const buscar = ref('')
 const headers = [
@@ -24,22 +25,24 @@ const equiposSeleccionados = ref([])
 const textoBase = 'Sirva la presente para dar salida de los siguientes equipos por parte del departamento de Aldea tecnológica. Los equipos van a ser resguardados por el departamento, para la actividad a realizarse el día'
 
 const datos = ref({
-  respSeleccionado: '',
+  respSeleccionado: null,
   fecha: '',
   ubicacion: null,
-  pa_quien: 'Centro Aldea Tecnológica / Sede Estovacuy',
+  pa_quien: null,
   asunto: 'Salida - Entrada de equipos',
   descripcion: textoBase,
+  vigilancia: false,
 })
 
 function restablecer() {
   datos.value = {
-    respSeleccionado: '',
+    respSeleccionado: null,
     fecha: '',
     ubicacion: null,
-    pa_quien: 'Centro Aldea Tecnológica / Sede Estovacuy',
+    pa_quien: null,
     asunto: 'Salida - Entrada de equipos',
     descripcion: textoBase,
+    vigilancia: false,
   }
   equiposSeleccionados.value = []
   intentoEnvio.value = false
@@ -59,6 +62,7 @@ function cargarResponsables() {
   apiCall('responsables')
     .then((res) => {
       resp.value = res.data.users
+      depa.value = res.data.depa
       resp.value = resp.value.filter((item) => item.eliminado === 1)
     })
 }
@@ -103,13 +107,20 @@ async function generarMemorando() {
   }
 
   const memorando = {
-    respSeleccionado: datos.value.respSeleccionado,
+    respSeleccionado: Number(datos.value.respSeleccionado),
     fecha: datos.value.fecha,
-    ubicacion: datos.value.ubicacion,
-    pa_quien: datos.value.pa_quien ? datos.value.pa_quien : 'Centro Aldea Tecnológica / Sede Estovacuy',
+    ubicacion: Number(datos.value.ubicacion),
+    pa_quien: Number(datos.value.pa_quien),
     asunto: datos.value.asunto,
     descripcion: datos.value.descripcion,
-    equiposSeleccionados: equiposSeleccionados.value,
+    vigilancia: !!datos.value.vigilancia,
+    equiposSeleccionados: equiposSeleccionados.value.map((item) => {
+      if (typeof item === 'object' && item !== null) {
+        return Number(item.id ?? item.value ?? item)
+      }
+      return Number(item)
+    }),
+    direccionUrl: `${window.location.origin}/verificacion/`
   }
   cargando.value = true
   apiCall('memorandos', memorando, 'POST')
@@ -131,14 +142,19 @@ function obtenerDatos() {
   if (dataMemo) {
     datos.value = {
       respSeleccionado: dataMemo.id_responsable,
-      fecha: new Date(dataMemo.fecha,).toISOString().split('T')[0],
+      fecha: new Date(dataMemo.fecha).toISOString().split('T')[0],
       ubicacion: dataMemo.id_ubicacion,
-      pa_quien: dataMemo.pa_quien,
+      pa_quien: dataMemo.id_depa_pa_quien,
       asunto: dataMemo.asunto,
       descripcion: dataMemo.descripcion,
+      vigilancia: Boolean(dataMemo.vigilancia),
     }
-    equiposSeleccionados.value = dataMemo.equipos.map(item => item.id),
-    console.log(datos.value)
+    const idsGuardados = dataMemo.equipos.map(item => item.id)
+    // Opción 1: Usando .some() (ideal si las listas son pequeñas o medianas)
+    equiposSeleccionados.value = idsGuardados.filter(id =>
+      equipos.value.some(equipo => equipo.id === id)
+    )
+
   }
 }
 
@@ -185,7 +201,9 @@ onMounted(() => {
           <v-chip :color="equiposSeleccionados.length > 0 ? 'success' : (intentoEnvio ? 'error' : 'default')"
             variant="tonal" size="small"
             :prepend-icon="equiposSeleccionados.length > 0 ? 'mdi-check-circle' : 'mdi-alert-circle-outline'">
-            {{ equiposSeleccionados.length > 0 ? `${equiposSeleccionados.length} equipo(s) seleccionado(s)` : 'Al menos 1 equipo requerido' }}
+            {{ equiposSeleccionados.length > 0 ?
+              `${equiposSeleccionados.length} equipo(s) seleccionado(s)`
+              : 'Al menos 1 equipo requerido' }}
           </v-chip>
         </div>
 
@@ -225,33 +243,60 @@ onMounted(() => {
                 :item-props="listaUbicaciones" label="Ubicación" density="compact" variant="outlined"
                 prepend-inner-icon="mdi-map-marker" :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" md="3">
-              <v-text-field v-model="datos.pa_quien" label="Para quien" type="text" density="compact" variant="outlined"
-                prepend-inner-icon="mdi-account" :rules="[reglas.required]" />
+            <v-col cols="12" md="6">
+              <v-autocomplete v-model="datos.pa_quien" label="Para quien" type="text" density="compact"
+                variant="outlined" prepend-inner-icon="mdi-account" :items="depa" item-title="nombre_dep"
+                item-value="id_dep" :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="6">
               <v-text-field v-model="datos.asunto" label="Asunto" type="text" density="compact" variant="outlined"
                 prepend-inner-icon="mdi-text-box" :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col cols="12">
               <v-textarea v-model="datos.descripcion" label="Descripción" type="text" rows="3" no-resize
                 density="compact" variant="outlined" prepend-inner-icon="mdi-comment-text-outline"
                 :rules="[reglas.required]" />
             </v-col>
-            <v-col cols="12" sm="auto">
-              <v-btn color="primary" prepend-icon="mdi-file-document-check" @click="generarMemorando"
-                :loading="cargando">
-                Generar memorando
-              </v-btn>
+            <v-col cols="12" sm="4">
+              <v-switch label="¿Requiere pasar por garita?" v-model="datos.vigilancia" inset color="primary" />
+              <v-chip :color="datos.vigilancia ? 'success' : 'default'" variant="tonal" size="small"
+                :prepend-icon="datos.vigilancia ? 'mdi-check-circle' : 'mdi-alert-circle-outline'">
+                {{ datos.vigilancia ? 'Sí, requiere pasar por garita' : 'No requiere pasar por garita' }}
+              </v-chip>
             </v-col>
-            <v-col cols="12" sm="auto">
-              <v-btn color="error" variant="tonal" prepend-icon="mdi-restore" @click="restablecer">
-                Restablecer
-              </v-btn>
+            <v-col cols="12" class="my-0 p-0">
+              <v-row>
+                <v-col cols="12" sm="auto">
+                  <v-btn color="primary" prepend-icon="mdi-file-document-check" @click="generarMemorando"
+                    :loading="cargando">
+                    Generar memorando
+                  </v-btn>
+                </v-col>
+                <v-col cols="12" sm="auto">
+                  <v-btn color="error" variant="tonal" prepend-icon="mdi-restore" @click="restablecer">
+                    Restablecer
+                  </v-btn>
+                </v-col>
+              </v-row>
             </v-col>
           </v-row>
         </v-form>
       </v-card-text>
     </v-card>
+
+    <!-- Overlay de carga -->
+    <v-overlay :model-value="cargando" class="align-center justify-center" persistent scrim="black">
+      <v-card class="pa-8 d-flex flex-column align-center text-center rounded-xl" max-width="400" elevation="12">
+        <div class="position-relative d-flex align-center justify-center mb-5">
+          <v-progress-circular indeterminate color="primary" size="90" width="6"></v-progress-circular>
+          <v-icon icon="mdi-file-document-edit" color="primary" size="44" class="position-absolute" />
+        </div>
+        <h3 class="text-h6 font-weight-bold mb-2 text-primary">Generando Memorando</h3>
+        <p class="text-body-2 text-medium-emphasis">
+          Construyendo el documento PDF y enviando notificaciones por correo. Por favor, espere un momento...
+        </p>
+      </v-card>
+    </v-overlay>
+
   </v-container>
 </template>

@@ -1,16 +1,16 @@
-import ubicacionModel from '../models/ubicacionM.js'
-const model = new ubicacionModel()
+const ubicacionModel = require('../models/ubicacionM.js');
+const model = new ubicacionModel();
 
 class ubicacioncontroller {
   all() {
     return new Promise((resolve, reject) => {
       model.all()
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -18,11 +18,11 @@ class ubicacioncontroller {
     return new Promise((resolve, reject) => {
       model.getOne(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -30,12 +30,11 @@ class ubicacioncontroller {
     return new Promise((resolve, reject) => {
       model.create(data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
-
+          reject(err);
+        });
     });
   }
 
@@ -43,11 +42,11 @@ class ubicacioncontroller {
     return new Promise((resolve, reject) => {
       model.update(id, data)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
 
@@ -55,14 +54,13 @@ class ubicacioncontroller {
     return new Promise((resolve, reject) => {
       model.delete(id)
         .then((res) => {
-          resolve(res)
+          resolve(res);
         })
         .catch((err) => {
-          reject(err)
-        })
+          reject(err);
+        });
     });
   }
-
 }
 
-export default ubicacioncontroller;
+module.exports = ubicacioncontroller;

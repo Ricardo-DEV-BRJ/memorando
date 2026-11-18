@@ -17,5 +17,8 @@ export const reglas = {
     idNumeric: v => (!v || /^\d{6,10}$/.test(v)) || 'La identificación debe contener entre 6 y 10 dígitos',
 
     // Alfanumérico sin espacios (ej. Pasaporte o identificaciones con letras y números)
-    idAlphanumeric: v => (!v || /^[a-zA-Z0-9]{5,12}$/.test(v)) || 'La identificación debe tener entre 5 y 12 caracteres alfanuméricos'
+    idAlphanumeric: v => (!v || /^[a-zA-Z0-9]{5,12}$/.test(v)) || 'La identificación debe tener entre 5 y 12 caracteres alfanuméricos',
+
+    // 4. Correo electrónico
+    email: v => (!v || /.+@.+\..+/.test(v)) || 'El correo electrónico no es válido'
 }
