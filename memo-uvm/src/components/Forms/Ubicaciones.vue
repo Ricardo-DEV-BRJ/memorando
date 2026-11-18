@@ -7,6 +7,7 @@ const datos = ref({
 })
 const validado = ref(null)
 const editando = ref(false)
+const guardando = ref(false)
 
 const emit = defineEmits(['guardado']);
 
@@ -25,6 +26,7 @@ function abrir(data = {}) {
     datos.value = { ...data };
     editando.value = true;
   }
+  guardando.value = false;
   diag.value = true;
 }
 
@@ -37,6 +39,8 @@ function cancelar() {
 }
 
 async function agregar() {
+  if (guardando.value) return;
+  guardando.value = true;
   apiCall('ubicaciones/', datos.value, 'POST')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
@@ -50,10 +54,15 @@ async function agregar() {
     .catch((err) => {
       console.error(err);
       toast.error('Error al conectar con el servidor');
+    })
+    .finally(() => {
+      guardando.value = false;
     });
 }
 
 async function actualizar() {
+  if (guardando.value) return;
+  guardando.value = true;
   apiCall(`ubicaciones/${datos.value.id}`, datos.value, 'PUT')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
@@ -67,6 +76,9 @@ async function actualizar() {
     .catch((err) => {
       console.error(err);
       toast.error('Error al conectar con el servidor');
+    })
+    .finally(() => {
+      guardando.value = false;
     });
 }
 
@@ -77,7 +89,7 @@ defineExpose({
 </script>
 
 <template>
-  <v-dialog v-model="diag" max-width="500px">
+  <v-dialog v-model="diag" max-width="500px" :persistent="guardando">
     <v-card>
       <v-card-title>
         <v-row align="center">
@@ -85,7 +97,8 @@ defineExpose({
             {{ editando ? 'Editar' : 'Agregar' }}
           </v-col>
           <v-col cols="4" class="text-right">
-            <v-btn color="error" variant="tonal" icon="mdi-close-circle-outline" size="small" @click="cancelar"></v-btn>
+            <v-btn color="error" variant="tonal" icon="mdi-close-circle-outline" size="small" :disabled="guardando"
+              @click="cancelar"></v-btn>
           </v-col>
         </v-row>
       </v-card-title>
@@ -110,11 +123,12 @@ defineExpose({
         </v-form>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" @click="cancelar">Cancelar</v-btn>
+        <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" :disabled="guardando"
+          @click="cancelar">Cancelar</v-btn>
         <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar"
-          :disabled="!validado" v-if="!editando">Agregar</v-btn>
+          :disabled="!validado" :loading="guardando" v-if="!editando">Agregar</v-btn>
         <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="actualizar"
-          :disabled="!validado" v-else>Actualizar</v-btn>
+          :disabled="!validado" :loading="guardando" v-else>Actualizar</v-btn>
       </v-card-actions>
     </v-card>
 

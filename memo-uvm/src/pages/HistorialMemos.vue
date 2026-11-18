@@ -11,7 +11,8 @@ const router = useRouter()
 const memorandos = ref([])
 const cargando = ref(false)
 const busqueda = ref('')
-const copiarCargando = ref(false)
+// id del memorando que se está copiando, para que solo cargue el botón de esa fila
+const copiandoId = ref(null)
 const headers = [
   { key: 'fecha', title: 'Fecha', sortable: true },
   { key: 'ubicacion', title: 'Ubicación', sortable: true },
@@ -39,20 +40,19 @@ function cargarMemorandos() {
 }
 
 async function copiarMemo(item) {
-  copiarCargando.value = true
-  await apiCall(`memorandos/${item.id}`)
-    .then((res) => {
-      memoCopiar.value = res.data.memos
-    })
-    .catch((err) => {
-      console.error(err)
-      toast.error('Error al cargar los detalles del memorando')
-    })
-    .finally(() => {
-      copiarCargando.value = false
-    })
-  localStorage.setItem('memo', JSON.stringify(memoCopiar.value))
-  router.push('/memo')
+  if (copiandoId.value !== null) return
+  copiandoId.value = item.id
+  try {
+    const res = await apiCall(`memorandos/${item.id}`)
+    memoCopiar.value = res.data.memos
+    localStorage.setItem('memo', JSON.stringify(memoCopiar.value))
+    router.push('/memo')
+  } catch (err) {
+    console.error(err)
+    toast.error('Error al cargar los detalles del memorando')
+  } finally {
+    copiandoId.value = null
+  }
 }
 
 onMounted(() => {
@@ -164,7 +164,8 @@ onMounted(() => {
             <v-btn icon="mdi-eye-outline" variant="tonal" size="small" color="primary" title="Ver detalle del memorando"
               @click="detalle.verDetalle(item)" />
             <v-btn icon="mdi-content-copy" variant="tonal" size="small" color="primary" title="Copiar memorando"
-              @click="copiarMemo(item)" :loading="copiarCargando" />
+              @click="copiarMemo(item)" :loading="copiandoId === item.id"
+              :disabled="copiandoId !== null && copiandoId !== item.id" />
           </template>
         </v-data-table>
       </v-card-text>

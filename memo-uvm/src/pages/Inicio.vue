@@ -91,7 +91,7 @@ function eliminarEquipos(item) {
     .then((res) => {
       if (res.status === 200 || res.status === 204) {
         toast.success(res.data.message);
-        cargaInicial();
+        cargaInicialEquipos();
         confirmDialogRef.value.cerrar();
       } else {
         toast.error('Ocurrió un error al eliminar');
@@ -112,7 +112,7 @@ function abrirCambiarEstado(item) {
 }
 
 function cambiarEstadoEquipo() {
-  if (!equipoSeleccionado.value || !nuevoEstado.value) return;
+  if (!equipoSeleccionado.value || !nuevoEstado.value || cargandoEstado.value) return;
   cargandoEstado.value = true;
   apiCall(`equipos/${equipoSeleccionado.value.id}/changeStatus`, { estado: nuevoEstado.value }, 'PUT')
     .then((res) => {
@@ -171,13 +171,12 @@ function eliminarUbicaciones(item) {
     });
 }
 
+// Cada función recarga su tabla cuando el servidor confirma la eliminación
 function eliminar(item) {
   if (tipoEl.value === 'equipos') {
     eliminarEquipos(item)
-    cargaInicialEquipos()
   } else if (tipoEl.value === 'ubicaciones') {
     eliminarUbicaciones(item)
-    cargaInicialUbicaciones()
   }
 }
 
@@ -297,7 +296,7 @@ onMounted(() => {
   <ubicaciones ref="ubicacionesFormRef" @guardado="cargaInicialUbicaciones" />
   <ListasAgregarForm ref="lista" @guardado="cargaInicialEquipos" />
 
-  <v-dialog v-model="diagEstadoEquipo" max-width="400px">
+  <v-dialog v-model="diagEstadoEquipo" max-width="400px" :persistent="cargandoEstado">
     <v-card class="pa-2 rounded-lg">
       <v-card-title class="d-flex align-center font-weight-bold text-h6">
         <v-icon icon="mdi-list-status" color="primary" class="mr-2"></v-icon>
@@ -312,7 +311,8 @@ onMounted(() => {
           prepend-inner-icon="mdi-check-circle-outline" density="compact"></v-select>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="tonal" color="grey-darken-1" @click="diagEstadoEquipo = false">Cancelar</v-btn>
+        <v-btn variant="tonal" color="grey-darken-1" :disabled="cargandoEstado"
+          @click="diagEstadoEquipo = false">Cancelar</v-btn>
         <v-btn color="primary" variant="flat" :loading="cargandoEstado" @click="cambiarEstadoEquipo">Guardar</v-btn>
       </v-card-actions>
     </v-card>

@@ -273,7 +273,8 @@ onMounted(() => {
                   </v-btn>
                 </v-col>
                 <v-col cols="12" sm="auto">
-                  <v-btn color="error" variant="tonal" prepend-icon="mdi-restore" @click="restablecer">
+                  <v-btn color="error" variant="tonal" prepend-icon="mdi-restore" :disabled="cargando"
+                    @click="restablecer">
                     Restablecer
                   </v-btn>
                 </v-col>

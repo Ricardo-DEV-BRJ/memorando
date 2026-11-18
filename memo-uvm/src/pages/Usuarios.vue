@@ -39,13 +39,17 @@ const validadoAcceso = ref(null)
 const permisosFormRef = ref(null)
 
 function cargaInicial() {
+  cargando.value = true
   apiCall('login/')
     .then((res) => {
       usuarios.value = res.data.users
       departamentos.value = res.data.depa
     })
     .catch((err) => {
-      toast.error(err.response.data.error)
+      toast.error(err.response?.data?.error || 'No se pudieron cargar los usuarios')
+    })
+    .finally(() => {
+      cargando.value = false
     })
 }
 
@@ -104,7 +108,7 @@ function abrirActivarUsuario(item) {
 }
 
 function activarUsuario() {
-  if (!userSeleccionado.value) return;
+  if (!userSeleccionado.value || cargandoActivar.value) return;
   cargandoActivar.value = true;
   apiCall(`responsables/${userSeleccionado.value.id}/activar`, {}, 'PUT')
     .then((res) => {
@@ -133,7 +137,8 @@ function abrirAccesoLogin(item) {
 }
 
 function guardarAccesoLogin() {
-  if (!userAcceso.value || !claveAcceso.value) return;
+  // El formulario también se envía con Enter: se evita una segunda petición mientras la primera está en curso
+  if (!userAcceso.value || !claveAcceso.value || cargandoAcceso.value) return;
   cargandoAcceso.value = true;
   apiCall(`login/${userAcceso.value.id}`, {
     change_pass: userAcceso.value.change_pass || 0,
@@ -343,7 +348,7 @@ onMounted(() => {
   <confirm-dialog ref="confirmDialogRef" @confirmar="eliminarResponsable" />
   <listas-agregar-form ref="lista" @guardado="cargaInicial" />
   <!-- Modal Activar Responsable -->
-  <v-dialog v-model="diagActivarUser" max-width="400px">
+  <v-dialog v-model="diagActivarUser" max-width="400px" :persistent="cargandoActivar">
     <v-card class="pa-2 rounded-lg">
       <v-card-title class="d-flex align-center font-weight-bold text-h6">
         <v-avatar color="success" variant="tonal" size="40" class="mr-3">
@@ -356,14 +361,15 @@ onMounted(() => {
           userSeleccionado.apellido }}</strong>?
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="tonal" color="grey-darken-1" @click="diagActivarUser = false">Cancelar</v-btn>
+        <v-btn variant="tonal" color="grey-darken-1" :disabled="cargandoActivar"
+          @click="diagActivarUser = false">Cancelar</v-btn>
         <v-btn color="success" variant="flat" :loading="cargandoActivar" @click="activarUsuario">Activar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <!-- Modal Dar Acceso al Login -->
-  <v-dialog v-model="diagAccesoLogin" max-width="450px">
+  <v-dialog v-model="diagAccesoLogin" max-width="450px" :persistent="cargandoAcceso">
     <v-card class="pa-2 rounded-lg">
       <v-card-title class="d-flex align-center font-weight-bold text-h6">
         <v-avatar color="warning" variant="tonal" size="40" class="mr-3">
@@ -396,7 +402,8 @@ onMounted(() => {
         </v-form>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn variant="tonal" color="grey-darken-1" @click="diagAccesoLogin = false">Cancelar</v-btn>
+        <v-btn variant="tonal" color="grey-darken-1" :disabled="cargandoAcceso"
+          @click="diagAccesoLogin = false">Cancelar</v-btn>
         <v-btn color="warning" variant="flat" :disabled="!validadoAcceso || !claveAcceso" :loading="cargandoAcceso"
           @click="guardarAccesoLogin">Conceder Acceso</v-btn>
       </v-card-actions>

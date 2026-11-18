@@ -4,6 +4,7 @@ const diag = ref(false)
 const datos = ref({
 })
 const validado = ref(null)
+const guardando = ref(false)
 const emit = defineEmits(['guardado']);
 
 function cerrar() {
@@ -12,6 +13,7 @@ function cerrar() {
 
 function abrir(data = {}) {
   datos.value = { ...data }
+  guardando.value = false;
   diag.value = true;
 }
 
@@ -27,6 +29,8 @@ const permisosUser = [
 ]
 
 async function agregar() {
+  if (guardando.value) return;
+  guardando.value = true;
   apiCall(`auth/permisos/${datos.value.id}`, { permisos: datos.value.permisos }, 'PUT')
     .then((res) => {
       if (res.status === 200 || res.status === 201) {
@@ -40,6 +44,9 @@ async function agregar() {
     .catch((err) => {
       console.error(err);
       toast.error(err.response?.data?.message);
+    })
+    .finally(() => {
+      guardando.value = false;
     });
 }
 
@@ -58,7 +65,7 @@ defineExpose({
 </script>
 
 <template>
-  <v-dialog v-model="diag" max-width="500px">
+  <v-dialog v-model="diag" max-width="500px" :persistent="guardando">
     <v-card>
       <v-card-title>
         <v-row align="center">
@@ -66,7 +73,8 @@ defineExpose({
             Asignar permiso
           </v-col>
           <v-col cols="4" class="text-right">
-            <v-btn color="error" variant="tonal" icon="mdi-close-circle-outline" size="small" @click="cancelar"></v-btn>
+            <v-btn color="error" variant="tonal" icon="mdi-close-circle-outline" size="small" :disabled="guardando"
+              @click="cancelar"></v-btn>
           </v-col>
         </v-row>
       </v-card-title>
@@ -89,9 +97,10 @@ defineExpose({
         </v-form>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" @click="cancelar">Cancelar</v-btn>
+        <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" :disabled="guardando"
+          @click="cancelar">Cancelar</v-btn>
         <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar"
-          :disabled="!validado">Asignar</v-btn>
+          :disabled="!validado" :loading="guardando">Asignar</v-btn>
       </v-card-actions>
     </v-card>
 

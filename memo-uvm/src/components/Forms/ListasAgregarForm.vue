@@ -114,7 +114,7 @@ defineExpose({
 </script>
 
 <template>
-  <v-dialog v-model="diag" :width="$vuetify.display.smAndDown ? '90%' : '60%'">
+  <v-dialog v-model="diag" :width="$vuetify.display.smAndDown ? '90%' : '60%'" :persistent="guardando">
     <v-card>
       <v-card-title>
         <v-row align="center">
@@ -122,7 +122,8 @@ defineExpose({
             {{ config.title }}
           </v-col>
           <v-col cols="4" class="text-right">
-            <v-btn color="error" variant="tonal" icon="mdi-close-circle-outline" size="small" @click="cancelar"></v-btn>
+            <v-btn color="error" variant="tonal" icon="mdi-close-circle-outline" size="small" :disabled="guardando"
+              @click="cancelar"></v-btn>
           </v-col>
         </v-row>
       </v-card-title>
@@ -168,7 +169,8 @@ defineExpose({
         </v-form>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" @click="cancelar">Cancelar</v-btn>
+        <v-btn color="error" prepend-icon="mdi-close-circle-outline" variant="tonal" :disabled="guardando"
+          @click="cancelar">Cancelar</v-btn>
         <v-btn color="primary" prepend-icon="mdi-check-circle-outline" variant="tonal" @click="agregar"
           :disabled="!validado || !tableData.length" :loading="guardando">Agregar</v-btn>
       </v-card-actions>

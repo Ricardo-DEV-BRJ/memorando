@@ -10,9 +10,7 @@
 /memo-uvm/.env
 
 # Dependencias
-/api-memo/node_modules/
-/memo-uvm/node_modules/
-**/node_modules/
+node_modules/
 
 # Compilación y producción
 dist/

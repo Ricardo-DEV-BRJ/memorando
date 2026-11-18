@@ -11,6 +11,7 @@ const user = decodeToken()
 const diagDetalle = ref(false)
 const memoSeleccionado = ref(null)
 const cargandoDetalle = ref(false)
+const imprimiendo = ref(false)
 const tokenQr = ref('')
 
 const headersEquipos = [
@@ -19,7 +20,8 @@ const headersEquipos = [
   { key: 'estado', title: 'Estado' },
 ]
 
-function obtenerDatosMemo(datos) {
+async function obtenerDatosMemo(datos) {
+  if (imprimiendo.value) return
   const datosMemo = {
     equipos: datos.equipos.map(item => ({
       nombre: item.nombre,
@@ -49,7 +51,15 @@ function obtenerDatosMemo(datos) {
     firma_rec: datos.firma_recp,
     vigilancia: datos.vigilancia,
   }
-  generarMemo(datosMemo)
+  imprimiendo.value = true
+  try {
+    await generarMemo(datosMemo)
+  } catch (err) {
+    console.error(err)
+    toast.error('Error al generar el PDF del memorando')
+  } finally {
+    imprimiendo.value = false
+  }
 }
 
 function verDetalle(item) {
@@ -223,7 +233,7 @@ defineExpose({
           Marcar completado
         </v-btn>
         <v-btn color="primary" :class="$vuetify.display.xs ? 'w-100' : ''" variant="tonal" prepend-icon="mdi-printer"
-          @click="obtenerDatosMemo(memoSeleccionado)">
+          :loading="imprimiendo" @click="obtenerDatosMemo(memoSeleccionado)">
           Imprimir
         </v-btn>
       </v-card-actions>
