@@ -3,7 +3,7 @@ const db = require('../database/db.js');
 class equiposmodel {
   all(id_dep) {
     return new Promise(async (resolve, reject) => {
-      const sql = 'SELECT nombre, serial, descripcion, estado, id_dep FROM equipo WHERE eliminado = 1 AND id_dep = ?';
+      const sql = 'SELECT * FROM equipo WHERE eliminado = 1 AND id_dep = ?';
       try {
         const [rows] = await db.query(sql, [id_dep]);
         if (rows.length > 0) {
