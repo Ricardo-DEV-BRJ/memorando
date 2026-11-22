@@ -20,6 +20,7 @@ declare module 'vue' {
     EstadoMemo: typeof import('./components/Modals/EstadoMemo.vue')['default']
     HelloWorld: typeof import('./components/HelloWorld.vue')['default']
     ListasAgregarForm: typeof import('./components/Forms/ListasAgregarForm.vue')['default']
+    LoaderUvm: typeof import('./components/LoaderUvm.vue')['default']
     ModalImagen: typeof import('./components/ModalImagen.vue')['default']
     NavBar: typeof import('./components/NavBar.vue')['default']
     PermisosForm: typeof import('./components/Forms/PermisosForm.vue')['default']

@@ -3,6 +3,8 @@ import DepartamentosForm from '@/components/Forms/DepartamentosForm.vue'
 
 const departamentos = ref([])
 const cargando = ref(false)
+// Muestra el loader a pantalla completa hasta que llegan los datos iniciales de la vista
+const cargandoVista = ref(true)
 const busqueda = ref('')
 // 'todos' | 'con' (con memorandos relacionados) | 'sin' (sin memorandos relacionados)
 const filtro = ref('todos')
@@ -74,7 +76,7 @@ function seleccionarFiltro(valor) {
 
 function cargaInicial() {
   cargando.value = true
-  apiCall('departamentos/')
+  return apiCall('departamentos/')
     .then((res) => {
       departamentos.value = (res.data.data || []).map((d) => ({
         ...d,
@@ -127,12 +129,15 @@ function eliminarDepartamento(item) {
 }
 
 onMounted(() => {
-  cargaInicial()
+  cargaInicial().finally(() => {
+    cargandoVista.value = false
+  })
 })
 </script>
 
 <template>
-  <v-container>
+  <LoaderUvm v-if="cargandoVista" />
+  <v-container v-else>
     <v-row align="center" class="mb-2">
       <v-col cols="12">
         <h1 class="text-h5 font-weight-bold">Gestión de departamentos</h1>

@@ -10,6 +10,8 @@ const router = useRouter()
 // Lista de Memorandos
 const memorandos = ref([])
 const cargando = ref(false)
+// Muestra el loader a pantalla completa hasta que llegan los datos iniciales de la vista
+const cargandoVista = ref(true)
 const busqueda = ref('')
 // id del memorando que se está copiando, para que solo cargue el botón de esa fila
 const copiandoId = ref(null)
@@ -26,7 +28,7 @@ const detalle = ref(null)
 
 function cargarMemorandos() {
   cargando.value = true
-  apiCall('memorandos')
+  return apiCall('memorandos')
     .then((res) => {
       memorandos.value = res.data.memos || []
     })
@@ -56,12 +58,15 @@ async function copiarMemo(item) {
 }
 
 onMounted(() => {
-  cargarMemorandos()
+  cargarMemorandos().finally(() => {
+    cargandoVista.value = false
+  })
 })
 </script>
 
 <template>
-  <v-container >
+  <LoaderUvm v-if="cargandoVista" />
+  <v-container v-else>
     <!-- Encabezado -->
     <v-row align="center" class="mb-4">
       <v-col>

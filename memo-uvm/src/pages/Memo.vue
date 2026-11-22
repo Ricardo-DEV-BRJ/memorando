@@ -8,6 +8,8 @@ const formRef = ref(null)
 const formValido = ref(null)
 const intentoEnvio = ref(false)
 const cargando = ref(false)
+// Muestra el loader a pantalla completa hasta que llegan los datos iniciales de la vista
+const cargandoVista = ref(true)
 const equipos = ref([])
 const resp = ref([])
 const depa = ref([])
@@ -52,14 +54,14 @@ function restablecer() {
 }
 
 function cargaInicialEquipos() {
-  apiCall('equipos')
+  return apiCall('equipos')
     .then((res) => {
       equipos.value = res.data.equ
     })
 }
 
 function cargarResponsables() {
-  apiCall('responsables')
+  return apiCall('responsables')
     .then((res) => {
       resp.value = res.data.users
       depa.value = res.data.depa
@@ -68,7 +70,7 @@ function cargarResponsables() {
 }
 
 function cargarUbicaciones() {
-  apiCall('ubicaciones')
+  return apiCall('ubicaciones')
     .then((res) => {
       ubica.value = res.data.ubi
       ubica.value = ubica.value.filter((item) => item.eliminado === 1)
@@ -168,10 +170,13 @@ watch(() => datos.value.fecha, (newVal) => {
 })
 
 onMounted(() => {
-  cargaInicialEquipos()
-  cargarResponsables()
-  cargarUbicaciones()
-  obtenerDatos()
+  // El memorando copiado se aplica cuando ya existe la lista de equipos,
+  // así sus equipos quedan seleccionados en la tabla
+  Promise.allSettled([cargaInicialEquipos(), cargarResponsables(), cargarUbicaciones()])
+    .then(obtenerDatos)
+    .finally(() => {
+      cargandoVista.value = false
+    })
 })
 </script>
 
@@ -212,7 +217,7 @@ onMounted(() => {
           class="mb-3" icon="mdi-alert-circle">
           Debe tener al menos un equipo en la lista seleccionado.
         </v-alert>
-        <v-data-table v-model="equiposSeleccionados" :headers="headers" :items="equipos" :search="buscar" show-select>
+        <v-data-table v-model="equiposSeleccionados" :headers="headers" :items="equipos" :search="buscar" show-select :loading="cargandoVista" class="elevation-1">
           <template #item.imagen="{ item }">
             <v-img v-if="item.imagen" :src="item.imagen" max-width="100" max-height="100" />
             <span v-else>Sin imagen</span>
@@ -221,6 +226,9 @@ onMounted(() => {
             <v-chip :color="item.estado === 'Disponible' ? 'green' : 'red'">
               {{ item.estado }}
             </v-chip>
+          </template>
+          <template #loader>
+            <LoaderUvm />
           </template>
         </v-data-table>
 

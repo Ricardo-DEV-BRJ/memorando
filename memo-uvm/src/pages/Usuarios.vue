@@ -5,6 +5,8 @@ import PermisosForm from '@/components/Forms/PermisosForm.vue';
 const usuarios = ref([])
 const departamentos = ref([])
 const cargando = ref(false)
+// Muestra el loader a pantalla completa hasta que llegan los datos iniciales de la vista
+const cargandoVista = ref(true)
 const tokenUser = ref('')
 const lista = ref(null)
 // Tabla
@@ -40,7 +42,7 @@ const permisosFormRef = ref(null)
 
 function cargaInicial() {
   cargando.value = true
-  apiCall('login/')
+  return apiCall('login/')
     .then((res) => {
       usuarios.value = res.data.users
       departamentos.value = res.data.depa
@@ -193,13 +195,16 @@ function abrirFormularioLista(tipo) {
 }
 
 onMounted(() => {
-  cargaInicial()
+  cargaInicial().finally(() => {
+    cargandoVista.value = false
+  })
   tokenUser.value = decodeToken()
 })
 </script>
 
 <template>
-  <v-container>
+  <LoaderUvm v-if="cargandoVista" />
+  <v-container v-else>
     <v-row align="center" class="mb-4">
       <v-col cols="12">
         <h1 class="text-h5 font-weight-bold">Gestión de Usuarios</h1>

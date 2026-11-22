@@ -45,6 +45,7 @@ async function consultarDocumento() {
 
   cargando.value = true
   mostrarCheck.value = false
+  mostrarError.value = false
   error.value = null
 
   await apiCall(`memorandos/documento/${folio.value}`)
@@ -55,11 +56,16 @@ async function consultarDocumento() {
         mostrarCheck.value = false
       }, 1800)
     })
-    .catch((error) => {
-      console.error('Error al obtener el documento:', error)
+    // El parámetro no se llama "error" para no tapar el ref del mismo nombre
+    .catch((err) => {
+      console.error('Error al obtener el documento:', err)
       cargando.value = false
-      error.value = error.response?.data?.message || 'No se pudo verificar el documento o el folio no existe en el sistema.'
+      error.value = err.response?.data?.message || 'No se pudo verificar el documento o el folio no existe en el sistema.'
+      // Igual que el check: la animación se cierra sola y deja ver la tarjeta con "Reintentar"
       mostrarError.value = true
+      setTimeout(() => {
+        mostrarError.value = false
+      }, 1800)
     })
   cargando.value = false
 }
@@ -114,16 +120,7 @@ onMounted(() => {
     <v-row justify="center" align="center" class="w-100 ma-0">
       <v-col cols="12" sm="10" md="8" lg="7" xl="6">
         <!-- 1. ANIMACIÓN DE CARGA MIENTRAS ESPERA LA RESPUESTA -->
-        <v-card v-if="cargando" rounded="xl" elevation="3" class="pa-8 text-center loading-card mx-auto">
-          <v-progress-circular indeterminate color="primary" size="72" width="6" class="mb-6 pulse-animation" />
-          <h2 class="text-h5 font-weight-bold mb-2">Verificando Documento</h2>
-          <p class="text-body-1 text-medium-emphasis mb-4">
-            Consultando en el sistema el folio: <strong>{{ folio }}</strong>
-          </p>
-          <v-chip color="primary" variant="tonal" size="small" prepend-icon="mdi-shield-search">
-            Validando autenticidad en la base de datos...
-          </v-chip>
-        </v-card>
+        <LoaderUvm v-if="cargando" />
 
         <!-- 2. ANIMACIÓN DE CHECK / APROBADO EN EL MEDIO (TEMPORAL) -->
         <v-overlay :model-value="mostrarCheck" class="align-center justify-center text-center"
@@ -325,28 +322,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Animación suave de carga */
-.pulse-animation {
-  animation: pulse 1.8s infinite ease-in-out;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(0.95);
-    opacity: 0.85;
-  }
-
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scale(0.95);
-    opacity: 0.85;
-  }
-}
-
 /* Animación del check exitoso */
 .check-success-container {
   display: flex;

@@ -39,22 +39,24 @@ const diagEstadoEquipo = ref(false)
 const equipoSeleccionado = ref(null)
 const nuevoEstado = ref('')
 const cargandoEstado = ref(false)
+// Muestra el loader a pantalla completa hasta que llegan los datos iniciales de la vista
+const cargandoVista = ref(true)
 
 function cargaInicial() {
-  apiCall('responsables')
+  return apiCall('responsables')
     .then((res) => {
       resp.value = res.data.users
     })
 }
 
 function cargaInicialEquipos() {
-  apiCall('equipos')
+  return apiCall('equipos')
     .then((res) => {
       equipos.value = res.data.equ
     })
 }
 function cargaInicialUbicaciones() {
-  apiCall('ubicaciones')
+  return apiCall('ubicaciones')
     .then((res) => {
       ubica.value = res.data.ubi
     })
@@ -181,15 +183,18 @@ function eliminar(item) {
 }
 
 onMounted(() => {
-  cargaInicial()
-  cargaInicialEquipos()
-  cargaInicialUbicaciones()
+  // El loader se oculta cuando terminan las tres consultas (aunque alguna falle)
+  Promise.allSettled([cargaInicial(), cargaInicialEquipos(), cargaInicialUbicaciones()])
+    .then(() => {
+      cargandoVista.value = false
+    })
 })
 
 </script>
 
 <template>
-  <v-container>
+  <LoaderUvm v-if="cargandoVista" />
+  <v-container v-else>
     <h1>Panel de control</h1>
     <v-card subtitle="Opciones de agregar">
       <v-card-text>

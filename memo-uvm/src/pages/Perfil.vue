@@ -6,6 +6,8 @@ import { useSesion } from '@/composables/useSesion'
 const { refrescarSesion } = useSesion()
 const formRef = ref(null)
 const cargando = ref(false)
+// Muestra el loader a pantalla completa hasta que llegan los datos iniciales de la vista
+const cargandoVista = ref(true)
 const guardando = ref(false)
 const perfil = ref({
   nombre: '',
@@ -37,7 +39,7 @@ const firmaMostrada = computed(() => firmaNueva.value || perfil.value.firma)
 
 function cargarPerfil() {
   cargando.value = true
-  apiCall('responsables/perfil')
+  return apiCall('responsables/perfil')
     .then((res) => {
       if (res.status === 200) {
         perfil.value = { ...res.data.data }
@@ -120,12 +122,15 @@ async function guardar() {
 }
 
 onMounted(() => {
-  cargarPerfil()
+  cargarPerfil().finally(() => {
+    cargandoVista.value = false
+  })
 })
 </script>
 
 <template>
-  <v-container>
+  <LoaderUvm v-if="cargandoVista" />
+  <v-container v-else>
     <v-row align="center" class="mb-4">
       <v-col>
         <h1 class="text-h5 font-weight-bold">Mi perfil</h1>

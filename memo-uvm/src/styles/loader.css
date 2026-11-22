@@ -1,0 +1,53 @@
+
+/* Ocupa el alto de la vista para que la animación quede centrada mientras cargan los datos */
+#uvm-loader {
+  min-height: 60vh;
+}
+
+#uvm-loader .uvm-label {
+  font: 600 16px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: rgb(var(--v-theme-on-surface));
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+#uvm-loader .uvm-label i {
+  font-style: normal;
+  display: inline-block;
+  width: .55em;
+  text-align: center;
+  animation: uvm-dot 1.35s ease-in-out infinite;
+}
+
+#uvm-loader .uvm-label i:nth-child(2) {
+  animation-delay: .18s
+}
+
+#uvm-loader .uvm-label i:nth-child(3) {
+  animation-delay: .36s
+}
+
+@keyframes uvm-dot {
+
+  0%,
+  60%,
+  100% {
+    opacity: .2;
+    transform: translateY(0)
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-3px)
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  #uvm-loader .uvm-label i {
+    animation: none;
+    opacity: 1
+  }
+}
