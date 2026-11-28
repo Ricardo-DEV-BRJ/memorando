@@ -2,7 +2,6 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiCall } from '@/utils/api'
-import { generarMemo } from '@/utils/imprimir'
 import { toast } from '@/composables/useToast'
 
 const route = useRoute()
@@ -100,6 +99,8 @@ async function imprimirDocumento() {
         : []
     }
 
+    // pdfmake, sus fuentes y los membretes (~2 MB) se descargan solo al generar el PDF
+    const { generarMemo } = await import('@/utils/imprimir')
     await generarMemo(datosMemo)
   } catch (err) {
     console.error('Error al generar PDF:', err)
