@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx'
 import { capitalize } from 'vue'
 
 export const obtenerDatos = async (event) => {
@@ -11,11 +10,13 @@ export const obtenerDatos = async (event) => {
   if (esCsv) {
     return await csv(file)
   } else {
-    return await excel(file)
+    // La librería de Excel (~340 KB) se descarga solo cuando se carga un archivo de Excel
+    const XLSX = await import('xlsx')
+    return await excel(file, XLSX)
   }
 }
 
-function excel(file) {
+function excel(file, XLSX) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
 

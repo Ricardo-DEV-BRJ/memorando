@@ -1,5 +1,4 @@
 <script setup>
-import { generarMemo } from '@/utils/imprimir'
 import { formatFecha, coloresEstados } from '@/composables/useFunciones'
 import EstadoMemo from '@/components/Modals/EstadoMemo.vue'
 import { capitalize } from 'vue'
@@ -53,6 +52,8 @@ async function obtenerDatosMemo(datos) {
   }
   imprimiendo.value = true
   try {
+    // pdfmake, sus fuentes y los membretes (~2 MB) se descargan solo al generar el PDF
+    const { generarMemo } = await import('@/utils/imprimir')
     await generarMemo(datosMemo)
   } catch (err) {
     console.error(err)

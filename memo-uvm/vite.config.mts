@@ -20,12 +20,18 @@ export default defineConfig({
       },
     }),
     Fonts({
+      // Sin <link rel="preload">: por defecto el plugin precarga TODOS los archivos de fuente del build
+      // (incluidos los de iconos en .eot/.ttf), varios MB que retrasaban la primera carga.
+      // El plugin lee esta opción desde "custom" aunque las fuentes vengan de fontsource.
+      custom: { families: [], preload: false },
       fontsource: {
         families: [
           {
             name: 'Roboto',
-            weights: [100, 300, 400, 500, 700, 900],
-            styles: ['normal', 'italic'],
+            // Solo los pesos que usa Vuetify y el alfabeto latino (incluye tildes y ñ)
+            weights: [300, 400, 500, 700],
+            styles: ['normal'],
+            subset: 'latin',
           },
         ],
       },
